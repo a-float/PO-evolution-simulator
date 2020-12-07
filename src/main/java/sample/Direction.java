@@ -1,5 +1,7 @@
 package sample;
 
+import java.util.Random;
+
 public enum Direction {
     NORTH, NORTHEAST, EAST, SOUTHEAST,
     SOUTH, SOUTHWEST, WEST, NORTHWEST;
@@ -30,5 +32,8 @@ public enum Direction {
             String message = String.format("Tried to access element at index %d",dirIndex);
             throw new ArrayIndexOutOfBoundsException(message);
         }
+    }
+    public static Direction getRandomDirection(){
+        return Direction.values()[new Random().nextInt(Direction.values().length)];
     }
 }

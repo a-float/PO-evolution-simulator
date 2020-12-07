@@ -15,8 +15,4 @@ public abstract class AbstractDrawable extends Pane {
         position = pos;
         map = m;
     }
-    public void show(GraphicsContext gc) {
-        gc.setFill(color);
-        gc.fillRect(position.x*map.cellSize, position.y* map.cellSize, map.cellSize, map.cellSize);
-    }
 }

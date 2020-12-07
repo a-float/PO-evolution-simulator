@@ -16,6 +16,10 @@ public class Genome {
                 throw new IllegalArgumentException("gene with no corresponding direction in genome");
             }
         }
+//        if(!this.isValid()){
+//            throw new IllegalArgumentException("lacking a gene in the specified genome");
+//        }
+
     }
     public Genome(int length){
         if(length < 8){
@@ -25,6 +29,7 @@ public class Genome {
         for(int i = 0; i < length; i++){
             genes[i] = getRandom(8);
         }
+        this.repair();
     }
 
     public void repair(){
@@ -63,7 +68,7 @@ public class Genome {
             cut2 = tmp;
         }
         int otherPart = getRandom(3);   //the part that will copied from the other genome
-        System.out.printf("%d, %d, %d%n",cut1, cut2, otherPart);
+//        System.out.printf("%d, %d, %d%n",cut1, cut2, otherPart);
 
         System.arraycopy(main.genes,0, result, 0, genomeLength);
         switch (otherPart) {
@@ -73,6 +78,15 @@ public class Genome {
         }
         return new Genome(result);
     }
+    public boolean isValid(){
+        int[] geneCount = new int[8];
+        //geneCount array holds the number of occurrences of each direction in the genome
+        for(int g: genes)geneCount[g]++;
+        for(int gc : geneCount){
+            if(gc == 0) return false;
+        }
+        return true;
+    }
 
     public int chooseGene(){
         return genes[getRandom(genes.length)];
@@ -80,6 +94,21 @@ public class Genome {
 
     private static int getRandom(int length) {
         return new Random().nextInt(length);
+    }
+
+    public boolean equals(Object obj){
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Genome other = (Genome) obj;
+        if(genes.length != other.genes.length)return false;
+        for(int i = 0; i < genes.length; i++){
+            if(genes[i] != other.genes[i])return false;
+        }
+        return true;
     }
 
     @Override

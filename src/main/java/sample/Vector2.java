@@ -1,5 +1,8 @@
 package sample;
 
+import java.util.Objects;
+import java.util.Random;
+
 public class Vector2 {  //TODO test class
     int x;
     int y;
@@ -37,6 +40,14 @@ public class Vector2 {  //TODO test class
             }
         }
         return result;
+    }
+    public static Vector2 createRandom(int widthRange, int heightRange){
+        return new Vector2(new Random().nextInt(widthRange), new Random().nextInt(heightRange));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
     }
 
     @Override
