@@ -18,12 +18,11 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/sample.fxml"));
         Parent root = loader.load();
         Controller controller = loader.getController();
-        controller.setSize(400, 400);
+        controller.setSize(400, 400); //TODO not square sizes
 
-        Map map = new Map(60,60,0.5f);
-        SimulationManager simManager = new SimulationManager(map, 50, 50,30,2,120);
+        Map map = new Map(20,20,0.4f);
+        SimulationManager simManager = new SimulationManager(map, 5, 50,30,2,120);
         controller.setManager(simManager);
-
 
         controller.showMap();
         primaryStage.setTitle("Hello World");

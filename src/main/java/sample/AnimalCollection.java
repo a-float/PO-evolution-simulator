@@ -15,6 +15,7 @@ public class AnimalCollection {
     public void add(Animal animal){
         animalList.add(animal);
     }
+
     public boolean remove(Animal animalToRemove){
         return animalList.remove(animalToRemove);
     }
@@ -75,9 +76,9 @@ public class AnimalCollection {
         return Arrays.asList(result);
     }
 
-    public void sort(){
-        Collections.sort(animalList);
-    }
+//    public void sort(){
+//        Collections.sort(animalList);
+//    }
 
     public int size(){
         return animalList.size();

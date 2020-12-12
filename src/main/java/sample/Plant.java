@@ -7,6 +7,6 @@ public class Plant extends AbstractDrawable{
 
     public Plant(Vector2 pos, Map map) {
         super(pos, map);
-        color = Color.AQUAMARINE;
+        color = Color.DARKOLIVEGREEN;
     }
 }

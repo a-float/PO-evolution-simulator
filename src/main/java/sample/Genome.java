@@ -1,6 +1,7 @@
 package sample;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Random;
 
 public class Genome {
@@ -19,8 +20,8 @@ public class Genome {
 //        if(!this.isValid()){
 //            throw new IllegalArgumentException("lacking a gene in the specified genome");
 //        }
-
     }
+
     public Genome(int length){
         if(length < 8){
             throw new IllegalArgumentException("can have a genome this short");
@@ -110,6 +111,11 @@ public class Genome {
         }
         return true;
     }
+
+//    public int[] getDominantGenes(){
+//        Map<Integer,Integer> geneCount = new HashMap<>();
+//
+//    }
 
     @Override
     public String toString(){
