@@ -1,0 +1,5 @@
+.default-color0.chart-series-area-line { -fx-stroke: #FF7F50 ; }
+.default-color1.chart-series-area-line { -fx-stroke: #556B2F ; }
+
+.default-color0.chart-series-area-fill { -fx-fill: #FF7F5055; }
+.default-color1.chart-series-area-fill { -fx-fill: #b1d67255; }

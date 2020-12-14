@@ -1,6 +1,5 @@
 package sample;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,11 +9,11 @@ import java.util.stream.Collectors;
 public class Map {
     int mapWidth;
     int mapHeight;
-    HashMap<Vector2, AnimalCollection> animalsMap = new HashMap<>();
+    HashMap<Vector2, IAnimalCollection> animalMap = new HashMap<>();
     List<Animal> animals = new ArrayList<>();
     HashMap<Vector2, Plant> plants = new HashMap<>();
     Set<Vector2> noHasPlant = new HashSet<>(); //used to avoid plant collisions
-    Set<Vector2> hasAnimal = new HashSet<>(); //used to keep track of where are the animals
+    Set<Vector2> hasAnimal = new HashSet<>(); //used to keep track of where the animals are
     float jungleRatio;  //TODO change all the ints below?
     final int xJungleStart;
     final int xJungleEnd;
@@ -29,7 +28,7 @@ public class Map {
         xJungleEnd   = (int)Math.round(mapWidth*(1-(1-jungleRatio)*0.5));
         yJungleStart = (int)Math.round(mapHeight*(1-jungleRatio)*0.5);
         yJungleEnd   = (int)Math.round(mapHeight*(1-(1-jungleRatio)*0.5));
-        System.out.println(xJungleStart+" "+ xJungleEnd+" "+ yJungleStart+" "+  yJungleEnd);
+        System.out.println("Jungle coords: "+xJungleStart+" "+ xJungleEnd+" "+ yJungleStart+" "+  yJungleEnd);
         //the board is empty so no tiles have a plant on them
         for(int x = 0; x < mapWidth; x++){
             for(int y = 0; y < mapHeight; y++){
@@ -37,7 +36,7 @@ public class Map {
                 //there are no plants so all tiles don't have plants on them
                 noHasPlant.add(tmpVector);
                 //fills animalsMap with empty AnimalsCollections
-                animalsMap.put(tmpVector, new AnimalCollection());
+                animalMap.put(tmpVector, new AnimalCollectionList(3));
             }
         }
     }
@@ -45,31 +44,18 @@ public class Map {
         Iterator<Animal> iter = animals.iterator();
         while(iter.hasNext()){
             Animal currAnimal = iter.next();
-//            System.out.println(currAnimal);
+//          System.out.println(currAnimal);
             if (currAnimal.energy <= 0) { //animal dies [*]
                 //remove from the AnimalCollection
-                animalsMap.get(currAnimal.position).remove(currAnimal);
-                //AnimalCollection is empty after this animal dies
-                if(animalsMap.get(currAnimal.position).size() == 0){
-                    hasAnimal.remove(currAnimal.position);
-                }
+                removeAnimal(currAnimal);
                 iter.remove();  //ded
 //                System.out.println("is ded");
             } else {
-                Vector2 newPosition = currAnimal.getNewRawPosition();
+                Vector2 newPosition = currAnimal.getNewRawPosition();   //could be oob
                 newPosition.x = Math.floorMod(newPosition.x, mapWidth);
                 newPosition.y = Math.floorMod(newPosition.y, mapHeight);
                 //remove from the previous collection
-                animalsMap.get(currAnimal.position).remove(currAnimal);
-                //AnimalCollection is empty after this animal leaves
-                if(animalsMap.get(currAnimal.position).size() == 0){
-                    hasAnimal.remove(currAnimal.position);
-                }
-
-                animalsMap.get(newPosition).add(currAnimal); //add to the new one
-//                System.out.printf("moved from %s to %s%n", currAnimal.position, newPosition);
-                currAnimal.move(newPosition, moveCost);
-                hasAnimal.add(newPosition); //has at least one animal now
+                moveAnimal(currAnimal, newPosition, moveCost);
             }
         }
     }
@@ -79,7 +65,7 @@ public class Map {
         for (Vector2 currPos : hasAnimal) {
             if(!noHasPlant.contains(currPos)) {// has a plant
 //                System.out.printf("feeding someone at %s%n",currPos);
-                List<Animal> animalsToFeed = animalsMap.get(currPos).getAllStrongest();
+                List<Animal> animalsToFeed = animalMap.get(currPos).getAllStrongest();
                 for(Animal animalToFeed: animalsToFeed){    //actual feeding
 //                    System.out.println(animalToFeed.energy);
                     animalToFeed.energy += plantEnergy/animalsToFeed.size();
@@ -92,47 +78,55 @@ public class Map {
     }
     public void breedAnimals(int startEnergy){
         for (Vector2 currPos : hasAnimal) {
-            AnimalCollection animCol = animalsMap.get(currPos);
-            if(animCol.size() >= 2){    //enough animals to mate
-                List<Animal> parents = animCol.getTwoStrongest();
-                //the weaker parent needs to have energy larger than half of the staring energy
-                if(parents.get(1).energy >= startEnergy*0.5) {
-                    Animal baby = Animal.deliverBaby(parents.get(0), parents.get(1)); //TODO more randomness?
-                    if(baby != null) {
-                        animals.add(baby);
-                        animalsMap.get(baby.position).add(baby);
-//                    System.out.printf("new animal at %s%n",baby.position);
-                        //no need for hasAnimal update beacuse parents are here as well
-                        //TODO add hasAnimal and fix animal spawning place
-                    }
-                }
+            List<Animal> parents = animalMap.get(currPos).getTwoStrongest();
+            if(parents == null)return;
+            //the weaker parent needs to have energy larger than half of the staring energy
+            if(parents.get(1).energy >= startEnergy*0.5) {
+                Animal baby = Animal.deliverBaby(parents.get(0), parents.get(1)); //TODO more randomness?
+                if(baby == null)return;
+                animals.add(baby);
+                animalMap.get(baby.position).add(baby);
+//                      System.out.printf("new animal at %s%n",baby.position);
+                //no need for hasAnimal update because parents are here as well
+                //TODO add hasAnimal and make animal not spawn on the parents tile
             }
         }
     }
 
-    private void placeAnimal(Animal animal){
+    private void placeNewAnimal(Animal animal){
         animals.add(animal);
-        animalsMap.get(animal.position).add(animal);
+        animalMap.get(animal.position).add(animal);
         hasAnimal.add(animal.position);
     }
 
-    public void placeAnimalAtRandom(int startEnergy){//TODO cant spawn more animals than there are tiles
-        Set<Vector2> noAnimalSet = animalsMap.keySet().stream()
-                .filter(vec -> !hasAnimal.contains(vec)) //is not in hasAnimals
-                .collect(Collectors.toSet());   //TODO similar to the code in the pickPlantFreeTile method
-        //picking a random position from the set of availalbe ones
-        int index = new Random().nextInt(noAnimalSet.size());
-        Iterator<Vector2> iter = noAnimalSet.iterator();
-        for (int i = 0; i < index; i++) {
-            iter.next();
+    private void moveAnimal(Animal animal, Vector2 dest, int moveCost){
+        animalMap.get(animal.position).remove(animal);
+        //AnimalCollection is empty after this animal leaves
+        if(animalMap.get(animal.position).size() == 0){
+            hasAnimal.remove(animal.position);
         }
-        Animal animalToAdd = new Animal(iter.next(), this, startEnergy);
-        placeAnimal(animalToAdd);
+        animalMap.get(dest).add(animal); //add to the new one
+//      System.out.printf("moved from %s to %s%n", currAnimal.position, newPosition);
+        animal.move(dest, moveCost);
+        hasAnimal.add(dest); //has at least one animal now
     }
 
-    public void placeAnimalAt(Vector2 pos, int startEnergy){
-        Animal animalToAdd = new Animal(pos, this, startEnergy);
-        placeAnimal(animalToAdd);
+    private void removeAnimal(Animal animal){
+        animalMap.get(animal.position).remove(animal);
+        //AnimalCollection is empty after this animal leaves
+        if(animalMap.get(animal.position).size() == 0){
+            hasAnimal.remove(animal.position);
+        }
+    }
+
+    //on a tile with no other Animal
+    public void placeAnimalAtRandom(int startEnergy){
+        Set<Vector2> noAnimalSet = animalMap.keySet().stream()
+                .filter(vec -> !hasAnimal.contains(vec)) //is not in hasAnimals
+                .collect(Collectors.toSet());
+        //picking a random position from the set of available ones
+        Animal animalToAdd = new Animal(getRandomVecFromSet(noAnimalSet),this, startEnergy);
+        placeNewAnimal(animalToAdd);
     }
 
     public void spawnGrass(){
@@ -164,12 +158,7 @@ public class Map {
                     .collect(Collectors.toSet());
         }
         if(diffSet.size() == 0)return null; //no place for a plant
-        int index = new Random().nextInt(diffSet.size());
-        Iterator<Vector2> iter = diffSet.iterator();
-        for (int i = 0; i < index; i++) {
-            iter.next();
-        }
-        return iter.next();
+        return getRandomVecFromSet(diffSet);
     }
 
     public boolean isInJungle(Vector2 vec){
@@ -180,4 +169,12 @@ public class Map {
         return true;
     }
 
+    private Vector2 getRandomVecFromSet(Set<Vector2> set){
+        int index = new Random().nextInt(set.size());
+        Iterator<Vector2> iter = set.iterator();
+        for (int i = 0; i < index; i++) {
+            iter.next();
+        }
+        return iter.next();
+    }
 }

@@ -49,6 +49,9 @@ public class Vector2 {  //TODO test class
     public int hashCode() {
         return Objects.hash(x, y);
     }
+    public static Vector2 zero(){
+        return new Vector2(0,0);
+    }
 
     @Override
     public boolean equals(Object obj){

@@ -50,7 +50,7 @@ public class Controller {
     @FXML
     private void changeSimulationSpeed (double speed) {
         System.out.println(speed);
-        createTimer(1/speed);
+        createTimer(0.1/speed);
     }
 
     private void nextGen(){
@@ -71,7 +71,7 @@ public class Controller {
         }
         timer = new Timeline(new KeyFrame(Duration.seconds(seconds), e -> nextGen()));
         timer.setCycleCount(Timeline.INDEFINITE);
-        timer.play();
+        if(isPlaying)timer.play();
     }
     @FXML
     void initialize() {

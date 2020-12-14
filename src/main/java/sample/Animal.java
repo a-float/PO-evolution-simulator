@@ -1,11 +1,13 @@
 package sample;
 
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
-public class Animal extends AbstractDrawable {
+import java.util.UUID;
+
+public class Animal extends AbstractDrawable implements Comparable<Animal> {
     Genome genome;
     int energy, babyCount, age;
+    String uniqueId;
     Direction currDirection;
 
     public Animal(Vector2 pos, Map map, int startEnergy){
@@ -16,6 +18,7 @@ public class Animal extends AbstractDrawable {
         this.currDirection = pickDirection();
         this.babyCount = 0;
         this.age = 0;
+        uniqueId = UUID.randomUUID().toString();
     }
 
     //returns a new animal if there is an empty tile around the parents, returns null otherwise
@@ -61,25 +64,33 @@ public class Animal extends AbstractDrawable {
         return Direction.fromInt(genome.chooseGene());
     }
 
-//    //this too, im not using TreeSets anymore
-//    public int compareTo(Animal other){
-//        return Math.round(-this.energy + other.energy);
-//    }
+    //this too, im not using TreeSets anymore
+    public int compareTo(Animal other){
+        int energyCompRes = Math.round(-this.energy + other.energy);
+        if(energyCompRes != 0) return energyCompRes;
+        else return uniqueId.compareTo(other.uniqueId);
+    }
 //
-//    //dunno if i need it
-//    public boolean equals(Object obj){
-//        if (this == obj)
-//            return true;
-//        if (obj == null)
-//            return false;
-//        if (getClass() != obj.getClass())
-//            return false;
-//        Animal other = (Animal) obj;
-//        if (!position.equals(other.position) || energy != other.energy){
-//            return false;
-//        }
-//        return currDirection == other.currDirection && genome.equals(other.genome);
-//    }
+    //dunno if i need it
+    public boolean equals(Object obj){
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Animal other = (Animal) obj;
+        if(!uniqueId.equals(other.uniqueId)){
+            return false;
+        }
+        if(age != other.age || babyCount != other.babyCount){
+            return false;
+        }
+        if (!position.equals(other.position) || energy != other.energy){
+            return false;
+        }
+        return currDirection == other.currDirection && genome.equals(other.genome);
+    }
 
     public String toString(){
         return String.format("Animal (pos = (%d, %d) energy = %d, dir = %s", position.x, position.y, energy, currDirection);

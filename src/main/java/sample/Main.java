@@ -20,8 +20,8 @@ public class Main extends Application {
         Controller controller = loader.getController();
         controller.setSize(400, 400); //TODO not square sizes
 
-        Map map = new Map(20,20,0.4f);
-        SimulationManager simManager = new SimulationManager(map, 5, 50,30,2,120);
+        Map map = new Map(40,40,0.4f);
+        SimulationManager simManager = new SimulationManager(map, 100, 100,50,5,50);
         controller.setManager(simManager);
 
         controller.showMap();

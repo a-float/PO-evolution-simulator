@@ -2,13 +2,13 @@ package sample;
 
 import java.util.*;
 
-public class AnimalCollection {
+public class AnimalCollectionList implements IAnimalCollection{
     ArrayList<Animal> animalList;
 
-    AnimalCollection(int size){
+    AnimalCollectionList(int size){
         animalList = new ArrayList<>(size);
     }
-    AnimalCollection(){
+    AnimalCollectionList(){
         animalList = new ArrayList<>();
     }
 
@@ -28,8 +28,6 @@ public class AnimalCollection {
         Iterator<Animal> iter = animalList.iterator();
         //intentionally skipping the first animal as its already in the result list
        Animal currAnimal = iter.next();
-//        System.out.println("animals::");
-//        System.out.println(currAnimal);
         do{
             currAnimal=iter.next();
 //            System.out.println(currAnimal);
@@ -46,11 +44,8 @@ public class AnimalCollection {
         return result;
     }
 
-    public void addAll(List<Animal> animals){
-        animalList.addAll(animals);
-    }
-    //should be executed of the size is >= 2
     public List<Animal> getTwoStrongest(){
+        if(animalList.size()<2)return null;
         Animal[] result = new Animal[2];
         Iterator<Animal> iter = animalList.iterator();
         result[0] = iter.next();
@@ -75,10 +70,6 @@ public class AnimalCollection {
         }
         return Arrays.asList(result);
     }
-
-//    public void sort(){
-//        Collections.sort(animalList);
-//    }
 
     public int size(){
         return animalList.size();
