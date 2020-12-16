@@ -7,6 +7,12 @@ import java.util.Random;
 public class Genome {
     int[] genes;
 
+    /**
+     * Creates a Genome from specified genes. Checks if the length and numbers are valid.
+     * Doesn't check if every gene occurs at least once
+     * @param genes - array of int in range [0,7]
+     * return new Genome object with its genes set to the param
+     */
     public Genome(int[] genes){
         if(genes.length < 8){
             throw new IllegalArgumentException("can have a genome this short");
@@ -33,6 +39,11 @@ public class Genome {
         this.repair();
     }
 
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(genes);
+    }
+
     public void repair(){
         int[] geneCount = new int[8];
         //geneCount array holds the number of occurrences of each direction in the genome
@@ -43,7 +54,7 @@ public class Genome {
             for (int i = 0; i < 8; i++) {
                 if (geneCount[i] <= 0) {
                     repaired = false;                                   //at least one change has been made
-                    geneCount[(i + 1)% 8] -= Math.abs(geneCount[i])+1; //change enough genes of the next direction
+                    geneCount[(i + 1)% 8] -= Math.abs(geneCount[i])+1;  //change enough genes of the next direction
                     geneCount[i] = 1;                                   //so that the count of the previous one becomes 1
                 }
             }
@@ -57,6 +68,7 @@ public class Genome {
         }
         Arrays.sort(genes);     //just to make debugging easier
     }
+
     public static Genome mixGenomes(Genome main, Genome other){
         int genomeLength = main.genes.length;
         int[] result = new int[genomeLength];
@@ -77,8 +89,10 @@ public class Genome {
             case 1 -> System.arraycopy(other.genes, cut1, result, cut1, cut2 - cut1);
             case 2 -> System.arraycopy(other.genes, cut2, result, cut2, genomeLength - cut2);
         }
+        Arrays.sort(result);
         return new Genome(result);
     }
+
     public boolean isValid(){
         int[] geneCount = new int[8];
         //geneCount array holds the number of occurrences of each direction in the genome
@@ -119,6 +133,15 @@ public class Genome {
 
     @Override
     public String toString(){
-        return "Genome("+ Arrays.toString(genes) +")";
+        int[] geneCount = new int[8];
+        //geneCount array holds the number of occurrences of each direction in the genome
+        for(int g: genes)geneCount[g]++;
+        StringBuilder res = new StringBuilder("[ ");
+        for(int i = 0; i < 8; i++){
+//            res.append(String.format("%2d:%-2d", i, geneCount[i]));
+            res.append(String.format("%d:%.1f ", i, (float)geneCount[i]/genes.length*100f));
+        }
+        res.append("]");
+        return res.toString();
     }
 }

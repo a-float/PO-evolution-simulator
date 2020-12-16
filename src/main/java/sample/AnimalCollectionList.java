@@ -2,9 +2,8 @@ package sample;
 
 import java.util.*;
 
-public class AnimalCollectionList implements IAnimalCollection{
+public class AnimalCollectionList {
     ArrayList<Animal> animalList;
-
     AnimalCollectionList(int size){
         animalList = new ArrayList<>(size);
     }
@@ -23,11 +22,10 @@ public class AnimalCollectionList implements IAnimalCollection{
     public List<Animal> getAllStrongest(){
         ArrayList<Animal> result = new ArrayList<>();
         if(animalList.size() == 0)return result;
-        result.add(animalList.get(0));
-        if(animalList.size() == 1)return result;
         Iterator<Animal> iter = animalList.iterator();
-        //intentionally skipping the first animal as its already in the result list
-       Animal currAnimal = iter.next();
+        result.add(iter.next());
+        if(animalList.size() == 1)return result;
+        Animal currAnimal;
         do{
             currAnimal=iter.next();
 //            System.out.println(currAnimal);
@@ -45,7 +43,7 @@ public class AnimalCollectionList implements IAnimalCollection{
     }
 
     public List<Animal> getTwoStrongest(){
-        if(animalList.size()<2)return null;
+        if(animalList.size()<2) return null;
         Animal[] result = new Animal[2];
         Iterator<Animal> iter = animalList.iterator();
         result[0] = iter.next();

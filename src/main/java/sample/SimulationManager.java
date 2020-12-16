@@ -24,6 +24,8 @@ public class SimulationManager {
         map.killOrMoveAnimals(moveEnergy);
         map.feedAnimals(plantEnergy);
         map.breedAnimals(startEnergy);
+        System.out.println("new gen");
+        map.genomeMap.forEach((key, value) -> System.out.println(key + " " + value));
     }
     public Map getMap(){
         return map;

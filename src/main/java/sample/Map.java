@@ -9,9 +9,10 @@ import java.util.stream.Collectors;
 public class Map {
     int mapWidth;
     int mapHeight;
-    HashMap<Vector2, IAnimalCollection> animalMap = new HashMap<>();
+    HashMap<Vector2, AnimalCollectionList> animalMap = new HashMap<>();
     List<Animal> animals = new ArrayList<>();
     HashMap<Vector2, Plant> plants = new HashMap<>();
+    HashMap<Genome, Integer> genomeMap = new HashMap<>();   //maps every animal genome on the map to the number of its occurances
     Set<Vector2> noHasPlant = new HashSet<>(); //used to avoid plant collisions
     Set<Vector2> hasAnimal = new HashSet<>(); //used to keep track of where the animals are
     float jungleRatio;  //TODO change all the ints below?
@@ -28,7 +29,7 @@ public class Map {
         xJungleEnd   = (int)Math.round(mapWidth*(1-(1-jungleRatio)*0.5));
         yJungleStart = (int)Math.round(mapHeight*(1-jungleRatio)*0.5);
         yJungleEnd   = (int)Math.round(mapHeight*(1-(1-jungleRatio)*0.5));
-        System.out.println("Jungle coords: "+xJungleStart+" "+ xJungleEnd+" "+ yJungleStart+" "+  yJungleEnd);
+//        System.out.println("Jungle coords: "+xJungleStart+" "+ xJungleEnd+" "+ yJungleStart+" "+  yJungleEnd);
         //the board is empty so no tiles have a plant on them
         for(int x = 0; x < mapWidth; x++){
             for(int y = 0; y < mapHeight; y++){
@@ -48,6 +49,7 @@ public class Map {
             if (currAnimal.energy <= 0) { //animal dies [*]
                 //remove from the AnimalCollection
                 removeAnimal(currAnimal);
+                removeGenome(currAnimal.genome);
                 iter.remove();  //ded
 //                System.out.println("is ded");
             } else {
@@ -67,9 +69,7 @@ public class Map {
 //                System.out.printf("feeding someone at %s%n",currPos);
                 List<Animal> animalsToFeed = animalMap.get(currPos).getAllStrongest();
                 for(Animal animalToFeed: animalsToFeed){    //actual feeding
-//                    System.out.println(animalToFeed.energy);
-                    animalToFeed.energy += plantEnergy/animalsToFeed.size();
-//                    System.out.println(animalToFeed.energy);
+                    animalToFeed.eat((int)plantEnergy/animalsToFeed.size());
                 }
                 plants.remove(currPos); //remove the plant
                 noHasPlant.add(currPos); //there is no plant anymore
@@ -125,7 +125,7 @@ public class Map {
                 .filter(vec -> !hasAnimal.contains(vec)) //is not in hasAnimals
                 .collect(Collectors.toSet());
         //picking a random position from the set of available ones
-        Animal animalToAdd = new Animal(getRandomVecFromSet(noAnimalSet),this, startEnergy);
+        Animal animalToAdd = new Animal(getRandomVecFromSet(noAnimalSet),this, new Genome(32), startEnergy);
         placeNewAnimal(animalToAdd);
     }
 
@@ -176,5 +176,15 @@ public class Map {
             iter.next();
         }
         return iter.next();
+    }
+
+    public void addGenome(Genome genome){
+        if(!genomeMap.containsKey(genome)) genomeMap.put(genome, 1);
+        else genomeMap.put(genome, genomeMap.get(genome)+1);
+    }
+    private void removeGenome(Genome genome){
+        int newCount = genomeMap.get(genome)-1;
+        if(newCount == 0)genomeMap.remove(genome);
+        else genomeMap.put(genome, newCount);
     }
 }

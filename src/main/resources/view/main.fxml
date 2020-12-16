@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.util.*?>
+<?import javafx.scene.layout.*?>
+
+<?import sample.SimulationControl?>
+<HBox xmlns="http://javafx.com/javafx/11.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="sample.MainControl">
+    <SimulationControl fx:id="sim1"/>
+    <SimulationControl fx:id="sim2"/>
+    <fx:define>
+        <ArrayList fx:id="simulationList" >
+            <fx:reference source="sim1"/>
+            <fx:reference source="sim2"/>
+        </ArrayList>
+    </fx:define>
+</HBox>

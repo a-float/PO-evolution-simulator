@@ -4,21 +4,20 @@ import javafx.scene.paint.Color;
 
 import java.util.UUID;
 
-public class Animal extends AbstractDrawable implements Comparable<Animal> {
+public class Animal extends AbstractDrawable{
     Genome genome;
     int energy, babyCount, age;
-    String uniqueId;
     Direction currDirection;
 
-    public Animal(Vector2 pos, Map map, int startEnergy){
+    public Animal(Vector2 pos, Map map, Genome genome, int startEnergy){
         super(pos, map);
         color = Color.CORAL;
-        this.genome = new Genome(32);
+        this.genome = genome;
+        this.map.addGenome(genome);
         this.energy = startEnergy;
         this.currDirection = pickDirection();
         this.babyCount = 0;
         this.age = 0;
-        uniqueId = UUID.randomUUID().toString();
     }
 
     //returns a new animal if there is an empty tile around the parents, returns null otherwise
@@ -39,8 +38,8 @@ public class Animal extends AbstractDrawable implements Comparable<Animal> {
             mama.energy *= 0.75;
             papa.energy *= 0.75;
             int babyEnergy = (int) Math.round(mama.energy * 0.25 + papa.energy * 0.25);
-            Animal baby = new Animal(mama.position, mama.map, babyEnergy);
-            baby.genome = Genome.mixGenomes(mama.genome, papa.genome);
+            Genome babyGenome = Genome.mixGenomes(mama.genome, papa.genome);
+            Animal baby = new Animal(mama.position, mama.map, babyGenome, babyEnergy);
             baby.currDirection = Direction.getRandomDirection();
             return baby;
         }
@@ -56,8 +55,8 @@ public class Animal extends AbstractDrawable implements Comparable<Animal> {
         age++;
     }
 
-    public void eat(){
-
+    public void eat(int eatEnergy){
+        energy += eatEnergy;
     }
 
     private Direction pickDirection(){
@@ -66,9 +65,7 @@ public class Animal extends AbstractDrawable implements Comparable<Animal> {
 
     //this too, im not using TreeSets anymore
     public int compareTo(Animal other){
-        int energyCompRes = Math.round(-this.energy + other.energy);
-        if(energyCompRes != 0) return energyCompRes;
-        else return uniqueId.compareTo(other.uniqueId);
+        return Math.round(-this.energy + other.energy);
     }
 //
     //dunno if i need it
@@ -80,9 +77,6 @@ public class Animal extends AbstractDrawable implements Comparable<Animal> {
         if (getClass() != obj.getClass())
             return false;
         Animal other = (Animal) obj;
-        if(!uniqueId.equals(other.uniqueId)){
-            return false;
-        }
         if(age != other.age || babyCount != other.babyCount){
             return false;
         }
