@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root type="javafx.scene.layout.Pane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+    <AreaChart fx:id="areaChart" animated="false" createSymbols="false" layoutY="-1.0" legendVisible="false" maxHeight="255.0" maxWidth="426.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="199.0" stylesheets="@../styles/chartStyles.css">
+        <xAxis>
+            <NumberAxis animated="false" autoRanging="false" forceZeroInRange="false" side="BOTTOM" upperBound="50.0" fx:id="xAxis" />
+        </xAxis>
+        <yAxis>
+            <NumberAxis animated="false" side="LEFT" />
+        </yAxis>
+    </AreaChart>
+</fx:root>

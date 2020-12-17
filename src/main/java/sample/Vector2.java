@@ -3,6 +3,9 @@ package sample;
 import java.util.Objects;
 import java.util.Random;
 
+/**
+ * Class representing a 2D Vector of integer coordinates
+ */
 public class Vector2 {  //TODO test class
     int x;
     int y;
@@ -25,6 +28,7 @@ public class Vector2 {  //TODO test class
         x -= other.x;
         y -= other.y;
     }
+
     public Vector2 opposite(){
         return new Vector2(-x, -y);
     }

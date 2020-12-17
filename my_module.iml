@@ -27,5 +27,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="org.apache.clerezza.ext:org.json.simple:0.4" level="application" />
   </component>
 </module>

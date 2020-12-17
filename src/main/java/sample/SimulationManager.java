@@ -5,6 +5,7 @@ public class SimulationManager {
     int startEnergy;
     int moveEnergy;
     int plantEnergy;
+    int currentGen = 0;
 
     //TODO create a map in constructor?
     public SimulationManager(Map map, int startAnimalCount, int startGrassCount, int startEnergy, int moveEnergy, int plantEnergy){
@@ -24,10 +25,17 @@ public class SimulationManager {
         map.killOrMoveAnimals(moveEnergy);
         map.feedAnimals(plantEnergy);
         map.breedAnimals(startEnergy);
-        System.out.println("new gen");
-        map.genomeMap.forEach((key, value) -> System.out.println(key + " " + value));
+        currentGen++;
+        System.out.println("Advancing to gen "+currentGen+".");
+//        map.genomeMap.forEach((key, value) -> System.out.println(key + " " + value));
     }
     public Map getMap(){
         return map;
     }
+
+//    public void setSelectedAnimal(Animal selected, int timeToObserve){
+//        if(selectedAnimal != null){
+//            selectedAnimal = new Animal()
+//        }
+//    }
 }

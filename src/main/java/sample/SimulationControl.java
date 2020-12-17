@@ -10,12 +10,10 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Bounds;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.chart.AreaChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
-import javafx.scene.layout.Pane;
+
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -26,22 +24,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SimulationControl extends VBox implements Initializable {
-    @FXML
-    Pane pane;
+    //TODO tidy up the whole controller, maybe break it up into smaller pieces
     @FXML
     Canvas canvas;
     @FXML
     Slider speedSlider;
     @FXML
-    AreaChart<Number, Number> areaChart;
+    ChartControl chartControl;
     @FXML
     Label label1, label2, label3, label4, label5, label6;
+    @FXML
+    TrackingControl trackControl;
+
+    Vector2 selectedPos = null;
 
     public SimulationManager simManager;
     boolean isPlaying = false;
+    double cellSize;
     Timeline timer;
 
     public SimulationControl() {
@@ -62,13 +63,36 @@ public class SimulationControl extends VBox implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         System.out.println("SimulationController initialized.");
         // This will now be called after the @FXML-annotated fields are initialized.
-        Platform.runLater(this::setUpChart);
-        Platform.runLater(this::showMap);
-
         createTimer(1f/speedSlider.getValue());
         speedSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
             changeSimulationSpeed(newValue.doubleValue());
         });
+
+        Platform.runLater(this::showMap);
+        Platform.runLater(this::updateStatLabels);
+    }
+
+
+    @FXML
+    private void canvasClicked(MouseEvent event){   //TODO its bad rn
+        if(!isPlaying) {
+            Map map = simManager.getMap();
+            Bounds bounds = canvas.getBoundsInLocal();
+            cellSize = Math.min(bounds.getWidth() / map.mapWidth, bounds.getHeight() / map.mapHeight);
+            int x = (int) Math.floor(event.getX() / cellSize);
+            int y = (int) Math.floor(event.getY() / cellSize);
+            selectedPos = new Vector2(x, y);
+
+            trackControl.selectedAnimalsListView.getItems().clear();
+            AnimalCollectionList selectedAnimalCollection = simManager.getMap().animalMap.get(selectedPos);
+//            if (selectedAnimalCollection.size() == 0) {
+//                selectedAnimalsListView.getItems().add("There are no animals on this tile.");
+//            }
+            for (Animal animal : selectedAnimalCollection.animalList) {   //TODO change .animalList to a getAll() or smth?
+                trackControl.selectedAnimalsListView.getItems().add(animal);
+            }
+            showMap();
+        }
     }
 
     //cannot step while the simulation is not paused
@@ -91,10 +115,13 @@ public class SimulationControl extends VBox implements Initializable {
     }
 
     private void nextGen(){
+        selectedPos = null; //this too
+        trackControl.selectedAnimalsListView.getItems().clear();     //TODO this should be somewhere else
         simManager.simulateGen();
         showMap();
         updateStatLabels();
-        updateChart();
+        Map map = simManager.getMap();
+        chartControl.updateChart(map.animals.size(), map.mapHeight*map.mapWidth- map.noHasPlant.size());
     }
 
     public void setManager(SimulationManager simManager) {
@@ -123,41 +150,54 @@ public class SimulationControl extends VBox implements Initializable {
             ageSum += animal.age;
             energySum += animal.energy;
         }
-        //TODO change all these labels?
+        //TODO change all these labels? can be changed to a TableView, more like a ListView
         label1.setText(Integer.toString(animalCount));
         label2.setText(Integer.toString(map.mapHeight*map.mapWidth- map.noHasPlant.size()));
         label3.setText(String.format("%.2f",energySum/animalCount));
         label4.setText(String.format("%.2f",ageSum/animalCount));
         label5.setText(String.format("%.2f",babySum/animalCount));
-        label6.setText(getKeysWithMaxValue(map.genomeMap).get(0).toString());
+        if(map.genomeMap.size() > 0) {
+            label6.setText(getKeysWithMaxValue(map.genomeMap).get(0).toString());
+        }
+        else{
+            label6.setText("none");
+        }
     }
 
+
     public void showMap() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        Map map = simManager.getMap();
+        GraphicsContext gc = canvas.getGraphicsContext2D(); //TODO setting cellSize and these variables is similar
         Bounds bounds = canvas.getBoundsInLocal();
-        double cellSize = Math.min(bounds.getWidth()/map.mapWidth, bounds.getHeight()/map.mapHeight);
+        Map map = simManager.getMap();
+        cellSize = Math.min(bounds.getWidth()/map.mapWidth, bounds.getHeight()/map.mapHeight);
 
         gc.clearRect(0, 0, bounds.getWidth(), bounds.getHeight());
-        double jungleWidth  = (map.xJungleEnd - map.xJungleStart)*cellSize;
-        double jungleHeight = (map.yJungleEnd - map.yJungleStart)*cellSize;
+        Vector2 jungleSize = Vector2.subtract(map.jungleEndPos, map.jungleStartPos);
+        double jungleWidth  = jungleSize.x*cellSize;
+        double jungleHeight = jungleSize.y*cellSize;
         //draw background
         gc.setFill(Color.LIGHTGREEN);
         gc.fillRect(0, 0, bounds.getWidth(), bounds.getHeight());
         //draw jungle
         gc.setFill(Color.DARKSEAGREEN);
-        gc.fillRect(map.xJungleStart*cellSize, map.yJungleStart*cellSize, jungleWidth, jungleHeight);
+        gc.fillRect(map.jungleStartPos.x*cellSize, map.jungleStartPos.y*cellSize, jungleWidth, jungleHeight);
+        //draw selected square
         //draw plants
         map.plants.values().forEach(plant -> {
-            gc.setFill(plant.color);
+            gc.setFill(plant.getColor());
             gc.fillRect(plant.position.x*cellSize, plant.position.y* cellSize, cellSize, cellSize);
         });
         //draw animals
         map.animals.forEach(animal -> {
-            gc.setFill(animal.color);
+            gc.setFill(animal.getColor());
             gc.fillRect(animal.position.x*cellSize, animal.position.y*cellSize, cellSize, cellSize);
         });
+        if(selectedPos!=null) {
+            gc.setFill(Color.BLACK);
+            gc.strokeRect(selectedPos.x * cellSize, selectedPos.y * cellSize, cellSize, cellSize);
+        }
     }
+
     //TODO maybe remove setSize
     public void setSize(int width, int height) {
         canvas.setWidth(width);
@@ -179,58 +219,6 @@ public class SimulationControl extends VBox implements Initializable {
             }
         }
         return resultList;
-    }
-
-    //chart things///////////////////////////////////////////////////////////////
-    private int xSeriesData = 0;
-    private static final int MAX_DATA_POINTS = 60;
-    private final XYChart.Series<Number, Number> animalSeries = new XYChart.Series<>();
-    private final XYChart.Series<Number, Number> plantSeries = new XYChart.Series<>();
-    private final ConcurrentLinkedQueue<Number> animalCountQueue = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<Number> plantCountQueue = new ConcurrentLinkedQueue<>();
-    @FXML
-    private NumberAxis xAxis;
-    private void setUpChart(){
-//        xAxis = new NumberAxis(0, MAX_DATA_POINTS, MAX_DATA_POINTS / 10f);
-//        xAxis.setForceZeroInRange(false);
-        xAxis.setTickUnit(10f);
-        xAxis.setAutoRanging(false);
-//        xAxis.setTickLabelsVisible(false);
-//        xAxis.setTickMarkVisible(false);
-//        xAxis.setMinorTickVisible(false);
-//        areaChart.setAnimated(false);
-        areaChart.setTitle("Animated Line Chart");
-        areaChart.setHorizontalGridLinesVisible(true);
-
-        animalSeries.setName("Animal count");
-        plantSeries.setName("Plant count");
-        areaChart.getData().addAll(animalSeries, plantSeries);
-    }
-    private void addNewDataToChartQueues(){
-        //TODO too many getMaps()
-        Map map = simManager.getMap();
-        animalCountQueue.add(map.animals.size());
-        plantCountQueue.add(map.mapHeight*map.mapWidth- map.noHasPlant.size());
-    }
-    private void addDataToSeries() {
-        if (!animalCountQueue.isEmpty()) {
-            animalSeries.getData().add(new XYChart.Data<>(xSeriesData++, animalCountQueue.remove()));
-            plantSeries.getData().add(new XYChart.Data<>(xSeriesData++, plantCountQueue.remove()));
-        }
-        // remove points to keep us at no more than MAX_DATA_POINTS
-        if (animalSeries.getData().size() > MAX_DATA_POINTS) {
-            animalSeries.getData().remove(0, animalSeries.getData().size() - MAX_DATA_POINTS);
-        }
-        if (plantSeries.getData().size() > MAX_DATA_POINTS) {
-            plantSeries.getData().remove(0, plantSeries.getData().size() - MAX_DATA_POINTS);
-        }
-        // update
-        xAxis.setLowerBound(xSeriesData - MAX_DATA_POINTS);
-        xAxis.setUpperBound(xSeriesData - 1);
-    }
-    private void updateChart(){
-        addNewDataToChartQueues();
-        addDataToSeries();
     }
 
 }

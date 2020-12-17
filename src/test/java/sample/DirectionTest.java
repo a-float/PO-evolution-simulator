@@ -7,10 +7,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class DirectionTest {
     @Test
     void toUnitVector() {
-        assertEquals(new Vector2(1,1), Direction.NORTHEAST.toUnitVector());
-        assertEquals(new Vector2(0,-1), Direction.SOUTH.toUnitVector());
-        assertEquals(new Vector2(-1,1), Direction.NORTHWEST.toUnitVector());
-        assertEquals(new Vector2(-1,-1), Direction.SOUTHWEST.toUnitVector());
+        assertEquals(new Vector2(1,-1), Direction.NORTHEAST.toUnitVector());
+        assertEquals(new Vector2(0,1), Direction.SOUTH.toUnitVector());
+        assertEquals(new Vector2(-1,-1), Direction.NORTHWEST.toUnitVector());
+        assertEquals(new Vector2(-1,1), Direction.SOUTHWEST.toUnitVector());
     }
 
     @Test

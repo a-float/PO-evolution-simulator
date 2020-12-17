@@ -15,21 +15,20 @@ public class Map {
     HashMap<Genome, Integer> genomeMap = new HashMap<>();   //maps every animal genome on the map to the number of its occurances
     Set<Vector2> noHasPlant = new HashSet<>(); //used to avoid plant collisions
     Set<Vector2> hasAnimal = new HashSet<>(); //used to keep track of where the animals are
-    float jungleRatio;  //TODO change all the ints below?
-    final int xJungleStart;
-    final int xJungleEnd;
-    final int yJungleStart;
-    final int yJungleEnd;
+//    float jungleRatio;  //TODO change all the ints below?
+    Vector2 jungleStartPos;
+    Vector2 jungleEndPos;
 
-    public Map(int width, int height, float jglRatio){
+
+    public Map(int width, int height, float jungleRatio){
         mapWidth = width;
         mapHeight = height;
-        jungleRatio = jglRatio;
-        xJungleStart = (int)Math.round(mapWidth*(1-jungleRatio)*0.5);
-        xJungleEnd   = (int)Math.round(mapWidth*(1-(1-jungleRatio)*0.5));
-        yJungleStart = (int)Math.round(mapHeight*(1-jungleRatio)*0.5);
-        yJungleEnd   = (int)Math.round(mapHeight*(1-(1-jungleRatio)*0.5));
-//        System.out.println("Jungle coords: "+xJungleStart+" "+ xJungleEnd+" "+ yJungleStart+" "+  yJungleEnd);
+        int xJungleStart = (int)Math.round(mapWidth*(1-jungleRatio)*0.5);
+        int xJungleEnd   = (int)Math.round(mapWidth*(1-(1-jungleRatio)*0.5));
+        int yJungleStart = (int)Math.round(mapHeight*(1-jungleRatio)*0.5);
+        int yJungleEnd   = (int)Math.round(mapHeight*(1-(1-jungleRatio)*0.5));
+        jungleStartPos = new Vector2(xJungleStart, yJungleStart);
+        jungleEndPos = new Vector2(xJungleEnd, yJungleEnd);
         //the board is empty so no tiles have a plant on them
         for(int x = 0; x < mapWidth; x++){
             for(int y = 0; y < mapHeight; y++){
@@ -41,27 +40,35 @@ public class Map {
             }
         }
     }
-    public void killOrMoveAnimals(int moveCost){    //TODO its a pretty big function ngl
+
+    /**
+     * Iterates over all the animals. If an animal has energy <= its removed
+     * Otherwise, it moves, losing energy equal to moveCost
+     * @param moveCost
+     */
+    public void killOrMoveAnimals(int moveCost){
         Iterator<Animal> iter = animals.iterator();
         while(iter.hasNext()){
             Animal currAnimal = iter.next();
-//          System.out.println(currAnimal);
             if (currAnimal.energy <= 0) { //animal dies [*]
                 //remove from the AnimalCollection
                 removeAnimal(currAnimal);
                 removeGenome(currAnimal.genome);
-                iter.remove();  //ded
-//                System.out.println("is ded");
+                iter.remove();  //removing from animals
             } else {
                 Vector2 newPosition = currAnimal.getNewRawPosition();   //could be oob
                 newPosition.x = Math.floorMod(newPosition.x, mapWidth);
                 newPosition.y = Math.floorMod(newPosition.y, mapHeight);
-                //remove from the previous collection
                 moveAnimal(currAnimal, newPosition, moveCost);
             }
         }
     }
-        //TODO change energy to float/double?
+
+    /**
+     * Check al the tiles with plants and animals
+     * Feeds all the strongest animals standing on a plant.
+     * @param plantEnergy
+     */
     public void feedAnimals(float plantEnergy){
         //if there is an animal and there ~(noHasPlant) <=> hasPlant, feed
         for (Vector2 currPos : hasAnimal) {
@@ -76,6 +83,13 @@ public class Map {
             }
         }
     }
+
+    /**
+     * Checks for tiles where there are animals fulfilling the breeding requirements
+     * (at least two animals on the tile and both of them have energy >= 0.5 startEnergy
+     * Creates babies where possible.
+     * @param startEnergy
+     */
     public void breedAnimals(int startEnergy){
         for (Vector2 currPos : hasAnimal) {
             List<Animal> parents = animalMap.get(currPos).getTwoStrongest();
@@ -93,6 +107,10 @@ public class Map {
         }
     }
 
+    /**
+     * Adds the new animal to the animals list, animalMap and hasAnimal
+     * @param animal
+     */
     private void placeNewAnimal(Animal animal){
         animals.add(animal);
         animalMap.get(animal.position).add(animal);
@@ -100,23 +118,24 @@ public class Map {
     }
 
     private void moveAnimal(Animal animal, Vector2 dest, int moveCost){
-        animalMap.get(animal.position).remove(animal);
-        //AnimalCollection is empty after this animal leaves
-        if(animalMap.get(animal.position).size() == 0){
-            hasAnimal.remove(animal.position);
-        }
-        animalMap.get(dest).add(animal); //add to the new one
-//      System.out.printf("moved from %s to %s%n", currAnimal.position, newPosition);
-        animal.move(dest, moveCost);
+        removeAnimal(animal);   //removed from the hasMap and animalMap
+        animal.move(dest, moveCost);    //moving the animal
+        animalMap.get(dest).add(animal); //adding back to both
         hasAnimal.add(dest); //has at least one animal now
     }
 
+    /**
+     * Removes the animal from animalMap and updates the hasAnimal set
+     * Doesn't modify animals list.
+     * @param animal
+     */
     private void removeAnimal(Animal animal){
         animalMap.get(animal.position).remove(animal);
         //AnimalCollection is empty after this animal leaves
         if(animalMap.get(animal.position).size() == 0){
             hasAnimal.remove(animal.position);
         }
+//        animals.remove(animal);
     }
 
     //on a tile with no other Animal
@@ -162,10 +181,10 @@ public class Map {
     }
 
     public boolean isInJungle(Vector2 vec){
-        if(vec.x < xJungleStart)return false;
-        if(vec.x > xJungleEnd)return false;
-        if(vec.y < yJungleStart)return false;
-        if(vec.y > yJungleEnd)return false;
+        if(vec.x < jungleStartPos.x)return false;
+        if(vec.x > jungleEndPos.x)return false;
+        if(vec.y < jungleStartPos.x)return false;
+        if(vec.y > jungleEndPos.y)return false;
         return true;
     }
 
@@ -178,6 +197,7 @@ public class Map {
         return iter.next();
     }
 
+    //TODO finish implementing genomeMap
     public void addGenome(Genome genome){
         if(!genomeMap.containsKey(genome)) genomeMap.put(genome, 1);
         else genomeMap.put(genome, genomeMap.get(genome)+1);

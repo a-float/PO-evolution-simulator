@@ -13,11 +13,16 @@ public class Animal extends AbstractDrawable{
         super(pos, map);
         color = Color.CORAL;
         this.genome = genome;
-        this.map.addGenome(genome);
+        this.map.addGenome(genome);     //TODO store less genome objects. No identical genomes. All should be in map genomeMap
         this.energy = startEnergy;
         this.currDirection = pickDirection();
         this.babyCount = 0;
         this.age = 0;
+    }
+
+    @Override
+    public Color getColor(){ //the lighter the less energy it has
+        return color.interpolate(Color.BROWN, energy/100f); //TODO hardcoded colors
     }
 
     //returns a new animal if there is an empty tile around the parents, returns null otherwise
@@ -32,7 +37,6 @@ public class Animal extends AbstractDrawable{
             return null;
         }
         else{
-            //TODO move some of it to animal mate method
             mama.babyCount++;
             papa.babyCount++;
             mama.energy *= 0.75;
@@ -48,6 +52,7 @@ public class Animal extends AbstractDrawable{
     public Vector2 getNewRawPosition(){
         return Vector2.add(position,currDirection.toUnitVector());
     }
+
     public void move(Vector2 newPos, int moveCost){
         position = newPos;
         energy -= moveCost;
@@ -61,29 +66,6 @@ public class Animal extends AbstractDrawable{
 
     private Direction pickDirection(){
         return Direction.fromInt(genome.chooseGene());
-    }
-
-    //this too, im not using TreeSets anymore
-    public int compareTo(Animal other){
-        return Math.round(-this.energy + other.energy);
-    }
-//
-    //dunno if i need it
-    public boolean equals(Object obj){
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Animal other = (Animal) obj;
-        if(age != other.age || babyCount != other.babyCount){
-            return false;
-        }
-        if (!position.equals(other.position) || energy != other.energy){
-            return false;
-        }
-        return currDirection == other.currDirection && genome.equals(other.genome);
     }
 
     public String toString(){

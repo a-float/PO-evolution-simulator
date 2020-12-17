@@ -13,7 +13,7 @@ public class Genome {
      * @param genes - array of int in range [0,7]
      * return new Genome object with its genes set to the param
      */
-    public Genome(int[] genes){
+    public Genome(int[] genes){ //TODO can store genome as an array of length 8
         if(genes.length < 8){
             throw new IllegalArgumentException("can have a genome this short");
         }
@@ -139,7 +139,7 @@ public class Genome {
         StringBuilder res = new StringBuilder("[ ");
         for(int i = 0; i < 8; i++){
 //            res.append(String.format("%2d:%-2d", i, geneCount[i]));
-            res.append(String.format("%d:%.1f ", i, (float)geneCount[i]/genes.length*100f));
+            res.append(String.format("%d:%d ", i, geneCount[i]));
         }
         res.append("]");
         return res.toString();
