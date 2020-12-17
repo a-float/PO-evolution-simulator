@@ -27,10 +27,22 @@ public class SimulationManager {
         map.breedAnimals(startEnergy);
         currentGen++;
         System.out.println("Advancing to gen "+currentGen+".");
+        if(currentGen == stopTrackingTime){
+            trackControl.stopTracking();
+        }
 //        map.genomeMap.forEach((key, value) -> System.out.println(key + " " + value));
     }
+
     public Map getMap(){
         return map;
+    }
+    public int getCurrentGen(){return currentGen;}
+    int stopTrackingTime;       //TODO move variables up
+    TrackingControl trackControl;
+
+    public void stopAfterXGens(int trackingTime, TrackingControl trackControl){   //TODO change this to something smarter
+        stopTrackingTime = currentGen + trackingTime;
+        this.trackControl = trackControl;
     }
 
 //    public void setSelectedAnimal(Animal selected, int timeToObserve){

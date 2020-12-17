@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
 <fx:root minHeight="120.0" type="javafx.scene.layout.Pane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
         <children>
@@ -9,7 +10,11 @@
             <Label layoutX="5.0" text="Choose a tile, then pick an animal you to observe." />
             <TextField fx:id="timeInput" layoutX="287.0" layoutY="18.0" prefHeight="25.0" prefWidth="130.0" />
             <Label layoutX="287.0" text="Observing time (in gens)" />
-            <Button layoutX="293.0" layoutY="51.0" mnemonicParsing="false" onAction="#startTracking" prefHeight="25.0" prefWidth="112.0" text="Start Observing" />
+            <Button layoutX="286.0" layoutY="86.0" mnemonicParsing="false" onAction="#startTracking" prefHeight="25.0" prefWidth="130.0" text="Start Observing" />
             <ListView fx:id="trackingList" layoutX="424.0" layoutY="18.0" prefHeight="93.0" prefWidth="178.0" />
+      <Label fx:id="trackingOutput" alignment="CENTER" layoutX="287.0" layoutY="44.0" prefHeight="41.0" prefWidth="130.0" wrapText="true">
+         <font>
+            <Font size="10.0" />
+         </font></Label>
         </children>
 </fx:root>

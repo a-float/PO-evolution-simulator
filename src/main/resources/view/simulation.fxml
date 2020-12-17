@@ -49,12 +49,12 @@
                </Pane>
                <Pane fx:id="pane" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="400.0">
                   <children>
-                     <Canvas fx:id="canvas" onMouseClicked="#canvasClicked" />
+                     <Canvas fx:id="canvas" height="400.0" onMouseClicked="#canvasClicked" width="400.0" />
                   </children>
                </Pane>
             </children>
          </HBox>
       </javafx.scene.layout.HBox>
-      <TrackingControl fx:id="trackControl"/>
+      <TrackingControl fx:id="trackControl" />
    </children>
 </fx:root>

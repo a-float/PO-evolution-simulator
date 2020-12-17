@@ -2,20 +2,23 @@ package sample;
 
 import javafx.scene.paint.Color;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-public class Animal extends AbstractDrawable{
+public class Animal extends AbstractDrawable implements ISubject{
     Genome genome;
     int energy, babyCount, age;
     Direction currDirection;
+    List<IObserver> observers = new ArrayList<>();
 
     public Animal(Vector2 pos, Map map, Genome genome, int startEnergy){
         super(pos, map);
         color = Color.CORAL;
         this.genome = genome;
         this.map.addGenome(genome);     //TODO store less genome objects. No identical genomes. All should be in map genomeMap
-        this.energy = startEnergy;
-        this.currDirection = pickDirection();
+        this.energy = startEnergy;      //TODO add map and tracking optional observers (no notification iif no observer)
+        this.currDirection = pickDirection();   //TODO also setMap, so that they can be separated and testes more easily
         this.babyCount = 0;
         this.age = 0;
     }
@@ -70,5 +73,22 @@ public class Animal extends AbstractDrawable{
 
     public String toString(){
         return String.format("Animal (pos = (%d, %d) energy = %d, dir = %s", position.x, position.y, energy, currDirection);
+    }
+
+    @Override
+    public void addObserver(IObserver observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(IObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Animal animal) {
+        for(IObserver observer: observers){
+            observer.notify();
+        }
     }
 }

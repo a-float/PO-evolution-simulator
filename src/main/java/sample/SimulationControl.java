@@ -70,6 +70,7 @@ public class SimulationControl extends VBox implements Initializable {
 
         Platform.runLater(this::showMap);
         Platform.runLater(this::updateStatLabels);
+        Platform.runLater(() -> trackControl.setManager(simManager));
     }
 
 

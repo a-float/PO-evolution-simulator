@@ -28,8 +28,8 @@ public class MainControl implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         for (SimulationControl sim : simulationList) { //TODO pass varables as parameters somehwere
             System.out.println("setting up controller "+sim);
-            sim.setSize(400,400);
-            Map map = new Map(width ,height,jungleRatio);
+//            sim.setSize(400,400);
+            Map map = new Map(width, height, jungleRatio);
             SimulationManager simManager = new SimulationManager(map, startAnimalCount, startPlantCount, startEnergy, moveEnergy, plantEnergy);
             sim.setManager(simManager);
         }
