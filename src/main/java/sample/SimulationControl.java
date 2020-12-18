@@ -34,9 +34,11 @@ public class SimulationControl extends VBox implements Initializable {
     @FXML
     ChartControl chartControl;
     @FXML
-    Label label1, label2, label3, label4, label5, label6;
+    Label label6;
     @FXML
     TrackingControl trackControl;
+    @FXML
+    ListView<DataPair> currGenStatsListView;
 
     Vector2 selectedPos = null;
 
@@ -64,8 +66,19 @@ public class SimulationControl extends VBox implements Initializable {
         System.out.println("SimulationController initialized.");
         // This will now be called after the @FXML-annotated fields are initialized.
         createTimer(1f/speedSlider.getValue());
-        speedSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
-            changeSimulationSpeed(newValue.doubleValue());
+        speedSlider.valueProperty().addListener((obs, oldValue, newValue) -> changeSimulationSpeed(newValue.doubleValue()));
+
+//        //TODO same as in trackingControl
+        currGenStatsListView.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(DataPair data, boolean empty) {
+                super.updateItem(data, empty);
+                if (empty || data == null || data.getPair() == null) {
+                    setText(null);
+                } else {
+                    setText(data.getPair());
+                }
+            }
         });
 
         Platform.runLater(this::showMap);
@@ -141,22 +154,12 @@ public class SimulationControl extends VBox implements Initializable {
 
     //TODO multiple getMaps in this class?
     public void updateStatLabels(){
-        Map map = this.simManager.getMap();
-        float energySum = 0;
-        float babySum = 0;
-        float ageSum = 0;
-        int animalCount = map.animals.size();
-        for(Animal animal : map.animals) {
-            babySum += animal.babyCount;
-            ageSum += animal.age;
-            energySum += animal.energy;
+        Map map = simManager.getMap();
+
+        currGenStatsListView.getItems().clear();
+        for(DataPair dp: simManager.statManager.getCurrGenDataInOrder()) { //TODO make it getStatManager?
+            currGenStatsListView.getItems().add(dp);
         }
-        //TODO change all these labels? can be changed to a TableView, more like a ListView
-        label1.setText(Integer.toString(animalCount));
-        label2.setText(Integer.toString(map.mapHeight*map.mapWidth- map.noHasPlant.size()));
-        label3.setText(String.format("%.2f",energySum/animalCount));
-        label4.setText(String.format("%.2f",ageSum/animalCount));
-        label5.setText(String.format("%.2f",babySum/animalCount));
         if(map.genomeMap.size() > 0) {
             label6.setText(getKeysWithMaxValue(map.genomeMap).get(0).toString());
         }
@@ -166,7 +169,7 @@ public class SimulationControl extends VBox implements Initializable {
     }
 
 
-    public void showMap() {
+    public void showMap() { //TODO hardcoded colors
         GraphicsContext gc = canvas.getGraphicsContext2D(); //TODO setting cellSize and these variables is similar
         Bounds bounds = canvas.getBoundsInLocal();
         Map map = simManager.getMap();
@@ -205,8 +208,8 @@ public class SimulationControl extends VBox implements Initializable {
         canvas.setHeight(height);
     }
 
-    //TODO move it somwhere else, maybe separate class
-    //TODO also, its hacked to return the biggest va
+    //TODO move it somewhere else, maybe separate class
+    //TODO also, its hacked to return the biggest value
     public static List<Genome> getKeysWithMaxValue(HashMap<Genome, Integer> map){
         final List<Genome> resultList = new ArrayList<>();
         int currentMaxValuevalue = Integer.MIN_VALUE;

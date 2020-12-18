@@ -14,22 +14,25 @@ import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 public class MainControl implements Initializable {
-    int width, height, startAnimalCount, startPlantCount, startEnergy, moveEnergy, plantEnergy;
+    int mapWidth, mapHeight, startAnimalCount, startPlantCount, startEnergy, moveEnergy, plantEnergy;
     float jungleRatio;
     @FXML
     ArrayList<SimulationControl> simulationList;
 
     public MainControl(){
         loadDataFromJSON();
-        System.out.println("MainControl constructed");
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         for (SimulationControl sim : simulationList) { //TODO pass varables as parameters somehwere
-            System.out.println("setting up controller "+sim);
-//            sim.setSize(400,400);
-            Map map = new Map(width, height, jungleRatio);
+            if(mapWidth*mapHeight < startAnimalCount){
+                throw new ArrayIndexOutOfBoundsException("Invalid data in parameters.json. Too many animals.");
+            }
+            if(mapWidth*mapHeight < startPlantCount){
+                throw new ArrayIndexOutOfBoundsException("Invalid data in parameters.json. Too many plants.");
+            }
+            Map map = new Map(mapWidth, mapHeight, jungleRatio);
             SimulationManager simManager = new SimulationManager(map, startAnimalCount, startPlantCount, startEnergy, moveEnergy, plantEnergy);
             sim.setManager(simManager);
         }
@@ -44,8 +47,8 @@ public class MainControl implements Initializable {
 
             JSONObject data = (JSONObject) obj;
             System.out.println("Loading the starting parameters: "+data);
-            width = (int)(long) data.get("width");
-            height = (int)(long) data.get("height");
+            mapWidth = (int)(long) data.get("width");
+            mapHeight = (int)(long) data.get("height");
             jungleRatio = (float)(double) data.get("jungleRatio");
             startAnimalCount = (int)(long) data.get("startAnimalCount");
             startPlantCount = (int)(long) data.get("startPlantCount");

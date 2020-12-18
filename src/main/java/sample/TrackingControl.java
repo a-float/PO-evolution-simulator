@@ -21,14 +21,15 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
     @FXML
     Label trackingOutput;
     @FXML
-    ListView<DataPair> trackingList;
+    ListView<DataPair> trackingListView;
     @FXML
     ListView<Animal> selectedAnimalsListView;   //TODO change it to animal Collection somehow?
 
     SimulationManager simManager;
-    enum dataKey {DEATH, CHILDREN, DESCENDANTS, TIME_LEFT};
+    enum dataKey {DEATH, CHILDREN, DESCENDANTS}
     HashMap<dataKey, DataPair> trackingData = new HashMap<>();
     Animal trackedAnimal = null;
+    //used to remove itself from observers of the animals after finishing tracking
     List<Animal> observed = new ArrayList<>();  //tracked animals descendants + tracked animal
     boolean tracking = false;
 
@@ -44,9 +45,9 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
             // this is pretty much fatal, so:
             System.exit(1);
         }
-        trackingData.put(dataKey.DEATH, new DataPair("Died in gen nr:", "???"));
-        trackingData.put(dataKey.CHILDREN, new DataPair("Children count:", "0"));
-        trackingData.put(dataKey.DESCENDANTS, new DataPair("Descendants count:", "0"));
+        trackingData.put(dataKey.DEATH, new DataPair("Died in gen no", "???"));
+        trackingData.put(dataKey.CHILDREN, new DataPair("Children count", "0"));
+        trackingData.put(dataKey.DESCENDANTS, new DataPair("Descendant count", "0"));  //TODO add 's'?
 //        trackingData.put(dataKey., new DataPair("Gens left to track:", "0"));
     }
 
@@ -56,7 +57,7 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
         Animal animalToTrack = selectedAnimalsListView.getSelectionModel().getSelectedItem();
         System.out.println("Starting tracking!");
         if(animalToTrack == null){
-            logToUser("No animal selected. Select one from list on the left.");
+            logToUser("No animal selected. Select one from list on the left.", Color.RED);
             return;
         }
         int timeToTrack;
@@ -64,28 +65,29 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
             timeToTrack = Integer.parseInt(timeInput.getText());
         }
         catch(NumberFormatException e){
-            logToUser("Invalid observing time. Please input a valid number");
+            logToUser("Invalid observing time. Please input a valid number", Color.RED);
             return;
         }
         if(timeToTrack <= 0){
-            logToUser("Invalid observing time. Please input a positive number");
+            logToUser("Invalid observing time. Please input a positive number", Color.RED);
             return;
         }
         trackedAnimal = animalToTrack;
         trackedAnimal.addObserver(this);
         tracking = true;
-        simManager.stopAfterXGens(timeToTrack, this);
+        simManager.setTrackingStopTime(timeToTrack, this);
         resetDataPairs();
         showTrackingData();
+        logToUser("Tracking unit gen no "+(simManager.getCurrentGen()+timeToTrack), Color.BLACK);
     }
 
-    private void logToUser(String message){
+    private void logToUser(String message, Color color){
         trackingOutput.setText(message);
-//        trackingOutput.setTextFill(Color.RED);
+        trackingOutput.setTextFill(color);
     }
     private void clearUserLog(){
         trackingOutput.setText("");
-//        trackingOutput.setTextFill(Color.BLACK);
+        trackingOutput.setTextFill(Color.BLACK);
     }
 
     public void resetDataPairs(){
@@ -97,7 +99,7 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("chart initialised");
-        selectedAnimalsListView.setCellFactory(param -> new ListCell<Animal>() {
+        selectedAnimalsListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(Animal animal, boolean empty) {
                 super.updateItem(animal, empty);
@@ -109,7 +111,7 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
                 }
             }
         });
-        trackingList.setCellFactory(param -> new ListCell<DataPair>() {
+        trackingListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(DataPair data, boolean empty) {
                 super.updateItem(data, empty);
@@ -125,9 +127,9 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
     }
 
     private void showTrackingData() {
-        trackingList.getItems().clear();
-        for(DataPair dp: trackingData.values()) {
-            trackingList.getItems().add(dp);
+        trackingListView.getItems().clear();
+        for(dataKey key: dataKey.values()) {    //order like in the enum
+            trackingListView.getItems().add(trackingData.get(key));
         }
     }
 
@@ -159,12 +161,11 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
         for(Animal subject : observed){
             subject.removeObserver(this);
         }
-        logToUser("Tracking finished at gen no."+this.simManager.getCurrentGen());
+        simManager.cancelTrackingStopTime(); //TODO bad name
+        logToUser("Tracking finished at gen no."+this.simManager.getCurrentGen(), Color.GREEN);
     }
 
     public void setManager(SimulationManager simManager){
         this.simManager = simManager;
-//        System.out.println("manager is set");
-//        System.out.printf(simManager.toString());
     }
 }

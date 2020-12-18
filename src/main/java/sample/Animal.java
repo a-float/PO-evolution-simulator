@@ -4,16 +4,17 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Animal extends AbstractDrawable implements ISubject{
     Genome genome;
     int energy, babyCount, age;
     Direction currDirection;
     List<IObserver> observers = new ArrayList<>();
+    Map map;
 
     public Animal(Vector2 pos, Map map, Genome genome, int startEnergy){
-        super(pos, map);
+        super(pos);
+        this.map = map;
         color = Color.CORAL;
         this.genome = genome;
         this.map.addGenome(genome);     //TODO store less genome objects. No identical genomes. All should be in map genomeMap
@@ -37,17 +38,19 @@ public class Animal extends AbstractDrawable implements ISubject{
             }
         }
         if (babyPosition == null) {
-            return null;
+            return null;    //no place for a child //TODO there should always be place
         }
         else{
             mama.babyCount++;
             papa.babyCount++;
-            mama.energy *= 0.75;
+            int babyEnergy = (int) Math.round(mama.energy * 0.25 + papa.energy * 0.25); //this needs to be
+            mama.energy *= 0.75;        //before these
             papa.energy *= 0.75;
-            int babyEnergy = (int) Math.round(mama.energy * 0.25 + papa.energy * 0.25);
             Genome babyGenome = Genome.mixGenomes(mama.genome, papa.genome);
             Animal baby = new Animal(mama.position, mama.map, babyGenome, babyEnergy);
-            baby.currDirection = Direction.getRandomDirection();
+            mama.notifyObservers(baby);
+            papa.notifyObservers(baby);
+            //baby start direction is set in its constructor
             return baby;
         }
     }
@@ -61,6 +64,10 @@ public class Animal extends AbstractDrawable implements ISubject{
         energy -= moveCost;
         currDirection = pickDirection();
         age++;
+    }
+
+    public void die(){
+        notifyObservers(null);
     }
 
     public void eat(int eatEnergy){
@@ -86,9 +93,9 @@ public class Animal extends AbstractDrawable implements ISubject{
     }
 
     @Override
-    public void notifyObservers(Animal animal) {
+    public void notifyObservers(Animal baby) {
         for(IObserver observer: observers){
-            observer.notify();
+            observer.notify(this, baby);
         }
     }
 }

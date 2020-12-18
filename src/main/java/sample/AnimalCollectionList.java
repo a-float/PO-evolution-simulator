@@ -37,8 +37,6 @@ public class AnimalCollectionList {
                 result.add(currAnimal);
             }
         }while(iter.hasNext());
-//        System.out.println("the result:::");
-//        result.stream().forEach(System.out::println);
         return result;
     }
 

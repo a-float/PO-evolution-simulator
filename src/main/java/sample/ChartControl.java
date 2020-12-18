@@ -56,6 +56,7 @@ public class ChartControl extends Pane implements Initializable {
     }
 
     public void updateChart(int newAnimalCount, int newPlantCount){
+//        System.out.println("updating chart");
         animalSeries.getData().add(new XYChart.Data<>(xSeriesData++, newAnimalCount));
         plantSeries.getData().add(new XYChart.Data<>(xSeriesData++, newPlantCount));
 

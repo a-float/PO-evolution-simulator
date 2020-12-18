@@ -6,18 +6,19 @@ import java.util.stream.Collectors;
 
 
 //TODO plants map not needed rn
-public class Map {
+public class Map extends AbstractISubject{
     int mapWidth;
     int mapHeight;
     HashMap<Vector2, AnimalCollectionList> animalMap = new HashMap<>();
     List<Animal> animals = new ArrayList<>();
     HashMap<Vector2, Plant> plants = new HashMap<>();
-    HashMap<Genome, Integer> genomeMap = new HashMap<>();   //maps every animal genome on the map to the number of its occurances
+    HashMap<Genome, Integer> genomeMap = new HashMap<>();   //maps every animal genome on the map to the number of its occurrences
     Set<Vector2> noHasPlant = new HashSet<>(); //used to avoid plant collisions
     Set<Vector2> hasAnimal = new HashSet<>(); //used to keep track of where the animals are
 //    float jungleRatio;  //TODO change all the ints below?
     Vector2 jungleStartPos;
     Vector2 jungleEndPos;
+
 
 
     public Map(int width, int height, float jungleRatio){
@@ -44,7 +45,7 @@ public class Map {
     /**
      * Iterates over all the animals. If an animal has energy <= its removed
      * Otherwise, it moves, losing energy equal to moveCost
-     * @param moveCost
+     * @param moveCost how much energy animal loses on making a move
      */
     public void killOrMoveAnimals(int moveCost){
         Iterator<Animal> iter = animals.iterator();
@@ -54,6 +55,8 @@ public class Map {
                 //remove from the AnimalCollection
                 removeAnimal(currAnimal);
                 removeGenome(currAnimal.genome);
+                currAnimal.die();
+                notifyObservers(currAnimal);
                 iter.remove();  //removing from animals
             } else {
                 Vector2 newPosition = currAnimal.getNewRawPosition();   //could be oob
@@ -67,7 +70,7 @@ public class Map {
     /**
      * Check al the tiles with plants and animals
      * Feeds all the strongest animals standing on a plant.
-     * @param plantEnergy
+     * @param plantEnergy how much energy gives eating a plant
      */
     public void feedAnimals(float plantEnergy){
         //if there is an animal and there ~(noHasPlant) <=> hasPlant, feed
@@ -88,7 +91,7 @@ public class Map {
      * Checks for tiles where there are animals fulfilling the breeding requirements
      * (at least two animals on the tile and both of them have energy >= 0.5 startEnergy
      * Creates babies where possible.
-     * @param startEnergy
+     * @param startEnergy double the minimal amount of energy animals need to breed
      */
     public void breedAnimals(int startEnergy){
         for (Vector2 currPos : hasAnimal) {
@@ -98,8 +101,7 @@ public class Map {
             if(parents.get(1).energy >= startEnergy*0.5) {
                 Animal baby = Animal.deliverBaby(parents.get(0), parents.get(1)); //TODO more randomness?
                 if(baby == null)return;
-                animals.add(baby);
-                animalMap.get(baby.position).add(baby);
+                placeNewAnimal(baby);
 //                      System.out.printf("new animal at %s%n",baby.position);
                 //no need for hasAnimal update because parents are here as well
                 //TODO add hasAnimal and make animal not spawn on the parents tile
@@ -109,7 +111,7 @@ public class Map {
 
     /**
      * Adds the new animal to the animals list, animalMap and hasAnimal
-     * @param animal
+     * @param animal animal to add
      */
     private void placeNewAnimal(Animal animal){
         animals.add(animal);
@@ -127,7 +129,7 @@ public class Map {
     /**
      * Removes the animal from animalMap and updates the hasAnimal set
      * Doesn't modify animals list.
-     * @param animal
+     * @param animal animal to remove
      */
     private void removeAnimal(Animal animal){
         animalMap.get(animal.position).remove(animal);
@@ -135,7 +137,6 @@ public class Map {
         if(animalMap.get(animal.position).size() == 0){
             hasAnimal.remove(animal.position);
         }
-//        animals.remove(animal);
     }
 
     //on a tile with no other Animal
@@ -154,7 +155,7 @@ public class Map {
         for(int i = 0; i <= 1; i++) {
             Vector2 plantPos = pickPlantFreeTile(i==1);
             if (plantPos != null) {
-                plants.put(plantPos, new Plant(plantPos, this));
+                plants.put(plantPos, new Plant(plantPos));
                 //System.out.printf("planting a grass on %s%n",plantPos);
                 noHasPlant.remove(plantPos);
             }
@@ -206,5 +207,13 @@ public class Map {
         int newCount = genomeMap.get(genome)-1;
         if(newCount == 0)genomeMap.remove(genome);
         else genomeMap.put(genome, newCount);
+    }
+
+
+    @Override
+    public void notifyObservers(Animal baby) {
+        for(IObserver observer : observers){
+            observer.notify(null, baby);
+        }
     }
 }

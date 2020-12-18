@@ -1,7 +1,8 @@
 package sample;
 
-import java.util.Objects;
-
+/**
+ * used as a data storage
+ */
 public class DataPair {
     private String name;
     private String value;
@@ -16,7 +17,7 @@ public class DataPair {
     }
 
     public String getPair(){
-        return String.format("%12s: %5s",name, value);
+        return String.format("%-27s: %s",name, value);
     }
 
 //    @Override

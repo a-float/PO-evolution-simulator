@@ -8,8 +8,8 @@ public enum Direction {
 
     /**
      *
-     * Y-axis is inverted, because the drwing is done with the Y-axis poiting downwards
-     * @return
+     * Y-axis is inverted, because the drawing is done with the Y-axis poiting downwards
+     * @return Vector2 pointing in specified direction inverted on the Y-axis
      */
     public Vector2 toUnitVector(){
         return switch(this){
