@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -39,6 +39,14 @@ public class Genome {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Genome genome = (Genome) o;
+        return Arrays.equals(genes, genome.genes);
+    }
+
+    @Override
     public int hashCode() {
         return Arrays.hashCode(genes);
     }
@@ -73,7 +81,7 @@ public class Genome {
         int[] result = new int[genomeLength];
         int cut1 = getRandom(1+genomeLength-2);       //two different places to cut the genome
         int cut2 =  getRandom(1+genomeLength-2);
-        while(cut2 == cut1)cut2 =  getRandom(1+genomeLength-2);
+        while(cut2 == cut1)cut2 = getRandom(1+genomeLength-2);
         if(cut2 < cut1){
             int tmp = cut1; //swap the cuts so that cut1<=cut2
             cut1 = cut2;
@@ -110,22 +118,7 @@ public class Genome {
         return new Random().nextInt(length);
     }
 
-    public boolean equals(Object obj){
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Genome other = (Genome) obj;
-        if(genes.length != other.genes.length)return false;
-        for(int i = 0; i < genes.length; i++){
-            if(genes[i] != other.genes[i])return false;
-        }
-        return true;
-    }
-
-//    public int[] getDominantGenes(){
+    //    public int[] getDominantGenes(){
 //        Map<Integer,Integer> geneCount = new HashMap<>();
 //
 //    }
@@ -135,10 +128,10 @@ public class Genome {
         int[] geneCount = new int[8];
         //geneCount array holds the number of occurrences of each direction in the genome
         for(int g: genes)geneCount[g]++;
-        StringBuilder res = new StringBuilder("[ ");
-        for(int i = 0; i < 8; i++){
+        StringBuilder res = new StringBuilder("[").append(String.format("%d:%d", 0, geneCount[0]));
+        for(int i = 1; i < 8; i++){
 //            res.append(String.format("%2d:%-2d", i, geneCount[i]));
-            res.append(String.format("%d:%d ", i, geneCount[i]));
+            res.append(String.format(" %d:%d", i, geneCount[i]));
         }
         res.append("]");
         return res.toString();

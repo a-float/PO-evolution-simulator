@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import org.junit.jupiter.api.RepeatedTest;
 
@@ -15,13 +15,11 @@ class AnimalCollectionListTest {
     Integer[] e5 = new Integer[]{1,2,3,4,5,6,7,8,9,10};
     Integer[] e4 = new Integer[]{4,4,4,2,1,3,4,4,4};
 
-    Map map = new Map(10,10,1);
-
     //return an AnimalCollection with animals of energies from energies
     AnimalCollectionList createAnimalColl(Integer[] energies){
         AnimalCollectionList result = new AnimalCollectionList();
         for (Integer energy : energies) {
-            result.add(new Animal(Vector2.zero(), map, new Genome(32), energy));
+            result.add(new Animal(Vector2.zero(), new Genome(32), energy));
         }
         return result;
     }
@@ -45,11 +43,11 @@ class AnimalCollectionListTest {
 
     @RepeatedTest(1)
     void getTwoStrongest() {
-        assertNull(createAnimalColl(e0).getTwoStrongest());
-        assertNull(createAnimalColl(e1).getTwoStrongest());
-        assertArrayEquals(new Integer[]{3,2}, listToEnergyArray(createAnimalColl(e2).getTwoStrongest()));
-        assertArrayEquals(new Integer[]{0,0}, listToEnergyArray(createAnimalColl(e3).getTwoStrongest()));
-        assertArrayEquals(new Integer[]{4,4}, listToEnergyArray(createAnimalColl(e4).getTwoStrongest()));
+        assertArrayEquals(new Integer[]{},     listToEnergyArray(createAnimalColl(e0).getTwoStrongest()));
+        assertArrayEquals(new Integer[]{},     listToEnergyArray(createAnimalColl(e1).getTwoStrongest()));
+        assertArrayEquals(new Integer[]{3,2},  listToEnergyArray(createAnimalColl(e2).getTwoStrongest()));
+        assertArrayEquals(new Integer[]{0,0},  listToEnergyArray(createAnimalColl(e3).getTwoStrongest()));
+        assertArrayEquals(new Integer[]{4,4},  listToEnergyArray(createAnimalColl(e4).getTwoStrongest()));
         assertArrayEquals(new Integer[]{10,9}, listToEnergyArray(createAnimalColl(e5).getTwoStrongest()));
     }
 
@@ -57,12 +55,12 @@ class AnimalCollectionListTest {
     void addRemoveTest(){
         AnimalCollectionList ac = new AnimalCollectionList();
         assertEquals(0, ac.size());
-        Animal firstAdded = new Animal(Vector2.zero(),map, new Genome(32), 30);
+        Animal firstAdded = new Animal(Vector2.zero(),new Genome(32), 30);
         ac.add(firstAdded);
         assertEquals(1, ac.size());
-        ac.add(new Animal(Vector2.zero(),map, new Genome(32), 30));
+        ac.add(new Animal(Vector2.zero(), new Genome(32), 30));
         assertEquals(2, ac.size());
-        ac.add(new Animal(Vector2.zero(),map, new Genome(32), 30));
+        ac.add(new Animal(Vector2.zero(), new Genome(32), 30));
         assertEquals(3, ac.size());
         ac.remove(firstAdded);
         assertEquals(2, ac.size());

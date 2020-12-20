@@ -1,9 +1,6 @@
-package sample;
+package evolutionSimulator;
 
-/**
- * used for storing data
- * Integer values are used, when incrementing them is needed.
- */
+
 public class DataPair<N,V> implements IDataPair<N,V> {
     private N first;
     private V second;

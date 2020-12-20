@@ -1,5 +1,9 @@
-package sample;
+package evolutionSimulator;
 
+/**
+ * used for storing data
+ * Integer values are used, when incrementing them is needed.
+ */
 public interface IDataPair<F, S> {
     void setFirst(F first);
     F getFirst(F first);

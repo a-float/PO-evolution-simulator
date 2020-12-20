@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -34,8 +34,8 @@ public class TrackingControl extends Pane implements Initializable, IObserver, I
         stopTracking();
     }
 
-    enum dataKey {DEATH, CHILDREN, DESCENDANTS}
-    HashMap<dataKey, DataPair> trackingData = new HashMap<>();
+    enum trackingDataKeys {DEATH, CHILDREN, DESCENDANTS}
+    HashMap<trackingDataKeys, DataPair> trackingData = new HashMap<>();
     Animal trackedAnimal = null;
     //used to remove itself from observers of the animals after finishing tracking
     List<Animal> observed = new ArrayList<>();  //tracked animals descendants + tracked animal
@@ -52,9 +52,9 @@ public class TrackingControl extends Pane implements Initializable, IObserver, I
             // this is pretty much fatal, so:
             System.exit(1);
         }
-        trackingData.put(dataKey.DEATH, new DataPair<>("Died in gen no", "???"));
-        trackingData.put(dataKey.CHILDREN, new DataPair<>("Children count", 0));
-        trackingData.put(dataKey.DESCENDANTS, new DataPair<>("Descendant count", 0));  //TODO add 's'?
+        trackingData.put(trackingDataKeys.DEATH, new DataPair<>("Died in gen no", "???"));
+        trackingData.put(trackingDataKeys.CHILDREN, new DataPair<>("Children count", 0));
+        trackingData.put(trackingDataKeys.DESCENDANTS, new DataPair<>("Descendant count", 0));  //TODO add 's'?
 //        trackingData.put(dataKey., new DataPair("Gens left to track:", "0"));
     }
 
@@ -102,9 +102,9 @@ public class TrackingControl extends Pane implements Initializable, IObserver, I
     }
 
     public void resetDataPairs(){
-        trackingData.get(dataKey.DEATH).setSecond("???");
-        trackingData.get(dataKey.CHILDREN).setSecond(0);
-        trackingData.get(dataKey.DESCENDANTS).setSecond(0);
+        trackingData.get(trackingDataKeys.DEATH).setSecond("???");
+        trackingData.get(trackingDataKeys.CHILDREN).setSecond(0);
+        trackingData.get(trackingDataKeys.DESCENDANTS).setSecond(0);
         dataHasChanged = true;
     }
 
@@ -140,7 +140,7 @@ public class TrackingControl extends Pane implements Initializable, IObserver, I
     public void showTrackingData() {
         if(dataHasChanged) {
             trackingListView.getItems().clear();
-            for (dataKey key : dataKey.values()) {    //order like in the enum
+            for (trackingDataKeys key : trackingDataKeys.values()) {    //order like in the enum
                 trackingListView.getItems().add(trackingData.get(key));
             }
             dataHasChanged = false;
@@ -158,7 +158,7 @@ public class TrackingControl extends Pane implements Initializable, IObserver, I
     public void notify(AnimalEvent event, Animal parent, Animal newborn) {
         if(!tracking) System.out.println("NOTIFIED WHILE NOT TRACKING?!");
         if(event == AnimalEvent.DEATH && parent == trackedAnimal){
-            trackingData.get(dataKey.DEATH).setSecond(Integer.toString(simManager.getCurrentGen()));
+            trackingData.get(trackingDataKeys.DEATH).setSecond(Integer.toString(simManager.getCurrentGen()));
             dataHasChanged = true;
         }
         else if(event == AnimalEvent.NEW_CHILD){
@@ -167,11 +167,11 @@ public class TrackingControl extends Pane implements Initializable, IObserver, I
             }
             if(!newborn.isObservedBy(this)) {   //it hasn't been counted yet
                 if (parent == trackedAnimal) {   //its a new direct child
-                    incrementValue(trackingData.get(dataKey.CHILDREN));
+                    incrementValue(trackingData.get(trackingDataKeys.CHILDREN));
                 }
                 //every child is also a descendant
                 //else its some further descendant
-                incrementValue(trackingData.get(dataKey.DESCENDANTS));
+                incrementValue(trackingData.get(trackingDataKeys.DESCENDANTS));
                 newborn.addObserver(this);
                 observed.add(newborn);
                 dataHasChanged = true;

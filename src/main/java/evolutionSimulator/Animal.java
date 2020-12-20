@@ -1,9 +1,11 @@
-package sample;
+package evolutionSimulator;
 
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Animal extends AbstractDrawable implements ISubject{   //TODO can't extend AbstractSubject :c
     Genome genome;
@@ -11,48 +13,50 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
     Direction currDirection;
     List<IObserver> observers = new ArrayList<>();
     Map map;
+    static Random random = ThreadLocalRandom.current();
 
-    public Animal(Vector2 pos, Map map, Genome genome, int startEnergy){
-        super(pos);
+    public void setMap(Map map){
         this.map = map;
-        color = Color.CORAL;
+    }
+
+    public Animal(Vector2 pos, Genome genome, int startEnergy){
+        super(pos, Color.CORAL, Color.BROWN);
         this.genome = genome;
-        //TODO add event here as well //TODO store less genome objects. No identical genomes. All should be in map genomeMap
-        this.energy = startEnergy;      //TODO add map and tracking optional observers (no notification iif no observer)
-        this.currDirection = pickDirection();   //TODO also setMap, so that they can be separated and testes more easily
+        this.energy = startEnergy;
+        this.currDirection = pickDirection();
         this.babyCount = 0;
         this.age = 0;
     }
 
-    @Override
-    public Color getColor(){ //the lighter the less energy it has
-        return color.interpolate(Color.BROWN, energy/100f); //TODO hardcoded colors
+    public Color getColor(){    //the lighter the less energy the animal has
+        return getInterpolatedColor(energy/100f);
     }
 
     //returns a new animal if there is an empty tile around the parents, returns null otherwise
     public static Animal deliverBaby(Animal mama, Animal papa) {
         Vector2 babyPosition = null;
-        for (Vector2 pos : mama.position.getAdjecentPositions()) {
+        Vector2[] possiblePositions = mama.position.getAdjecentPositions();
+        shuffleVectorArray(possiblePositions);
+        for (Vector2 pos : possiblePositions){
             if (!mama.map.hasAnimal.contains(pos)) {
                 babyPosition = pos;
             }
         }
-        if (babyPosition == null) {
-            return null;    //no place for a child //TODO there should always be place
+        if (babyPosition == null) { //all the tiles around are occupied
+            //no place for a child -> choose a random one
+            babyPosition = mama.position.getAdjecentPositions()[random.nextInt(8)];
         }
-        else{
-            mama.babyCount++;
-            papa.babyCount++;
-            int babyEnergy = (int) Math.round(mama.energy * 0.25 + papa.energy * 0.25); //this needs to be
-            mama.energy *= 0.75;        //before these
-            papa.energy *= 0.75;
-            Genome babyGenome = Genome.mixGenomes(mama.genome, papa.genome);
-            Animal baby = new Animal(mama.position, mama.map, babyGenome, babyEnergy);
-            mama.notifyObservers(AnimalEvent.NEW_CHILD, baby);
-            papa.notifyObservers(AnimalEvent.NEW_CHILD, baby);
-            //baby start direction is set in its constructor
-            return baby;
-        }
+        mama.babyCount++;
+        papa.babyCount++;
+        int babyEnergy = (int) Math.round(mama.energy * 0.25 + papa.energy * 0.25); //this needs to be
+        mama.energy *= 0.75;        //before these
+        papa.energy *= 0.75;
+        Genome babyGenome = Genome.mixGenomes(mama.genome, papa.genome);
+        Animal baby = new Animal(babyPosition, babyGenome, babyEnergy);
+        mama.notifyObservers(AnimalEvent.NEW_CHILD, baby);
+        papa.notifyObservers(AnimalEvent.NEW_CHILD, baby);
+        //baby's start direction is set in its constructor
+        return baby;
     }
 
     public Vector2 getNewRawPosition(){
@@ -82,6 +86,10 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
         return String.format("Animal (pos = (%d, %d) energy = %d, dir = %s", position.x, position.y, energy, currDirection);
     }
 
+    public String toShortString(){
+        return String.format("Animal [energy=%d, dir=%s]", energy, currDirection);
+    }
+
     //////ISubject code
     @Override
     public void addObserver(IObserver observer) {
@@ -107,7 +115,16 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
             observer.notify(event, this, newborn);
         }
     }
-    public String toShortString(){
-        return String.format("Animal [energy=%d, dir=%s]", energy, currDirection);
+
+    static void shuffleVectorArray(Vector2[] arr)
+    {
+        for (int i = arr.length - 1; i > 0; i--)
+        {
+            int index = random.nextInt(i + 1);
+            // Simple swap
+            Vector2 a = arr[index];
+            arr[index] = arr[i];
+            arr[i] = a;
+        }
     }
 }

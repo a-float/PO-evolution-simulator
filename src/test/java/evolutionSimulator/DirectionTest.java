@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import org.junit.jupiter.api.Test;
 

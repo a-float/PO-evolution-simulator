@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import java.util.*;
 
@@ -9,7 +9,7 @@ public class SimulationManager implements IClock{
     int moveEnergy;
     int plantEnergy;
     int currentGen = 0;
-    StatsManager statManager;   //TODO make it private?
+    private final StatsManager statManager;   //TODO make it private?
     List<DataPair<ISleeper, Integer>> alarmSchedule = new LinkedList<>();
 
     //TODO create a map in constructor?
@@ -25,21 +25,19 @@ public class SimulationManager implements IClock{
             map.placeAnimalAtRandom(startEnergy);
         }
         for(int i = 0; i < startPlantCount; i++){
-            map.spawnPlant();
+            map.spawnTwoPlants();
         }
     }
     public void simulateGen(){
-        map.spawnPlant();
+        map.spawnTwoPlants();
         map.killOrMoveAnimals(moveEnergy);
         map.feedAnimals(plantEnergy);
         map.breedAnimals(startEnergy);
         currentGen++;
         statManager.updateCurrGenData();
-//        System.out.println("Advancing to gen "+currentGen+".");
         checkAlarmSchedule();
-        //TODO remove it
-//        map.genomeMap.forEach((key, value) -> System.out.println(key + " " + value));
     }
+
     public void startDataSave(){
         statManager.startCollectingDataForSave();
     }
@@ -49,10 +47,13 @@ public class SimulationManager implements IClock{
     public Map getMap(){
         return map;
     }
+    public List<Animal> getAnimalsByGenome(Genome genome){
+        return map.getAnimalsByGenome(genome);
+    }
     public int getCurrentGen(){return currentGen;}
 
-    public HashMap<Genome, Integer> getGenomeData(){
-        return statManager.allGenomes; //TODO maybe a getter in statManager //TODO should pick the most dominant ones
+    public List<DataPair<Genome, Integer>> getDominantGenomesData(){
+        return statManager.getCurrGenDominantGenomesData(); //TODO maybe a getter in statManager //TODO should pick the most dominant ones
     }
 
     @Override
@@ -67,7 +68,7 @@ public class SimulationManager implements IClock{
             DataPair<ISleeper, Integer> dp = iter.next();
             if(dp.getSecond() == currentGen){
                 dp.getFirst().wakeUp();
-                System.out.println(dp);
+                System.out.println("Woke up "+dp.getFirst()+" at "+dp.getSecond());
                 iter.remove();
             }
         }
@@ -82,5 +83,13 @@ public class SimulationManager implements IClock{
                 break;
             }
         }
+    }
+
+    public IObserver getStatManager() {
+        return statManager;
+    }
+
+    public Iterable<DataPair<String, String>> getCurrStatData() {
+        return statManager.getCurrGenDataInOrder();
     }
 }

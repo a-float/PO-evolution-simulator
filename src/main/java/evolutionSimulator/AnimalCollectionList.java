@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import java.util.*;
 
@@ -41,7 +41,7 @@ public class AnimalCollectionList {
     }
 
     public List<Animal> getTwoStrongest(){
-        if(animalList.size()<2) return null;
+        if(animalList.size()<2) return new ArrayList<>(0);
         Animal[] result = new Animal[2];
         Iterator<Animal> iter = animalList.iterator();
         result[0] = iter.next();

@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import java.util.Objects;
 import java.util.Random;

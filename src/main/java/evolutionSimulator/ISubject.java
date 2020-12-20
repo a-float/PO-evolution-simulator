@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 public interface ISubject {
     void addObserver(IObserver observer);

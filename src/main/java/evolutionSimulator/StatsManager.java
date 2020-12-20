@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -11,14 +11,17 @@ public class StatsManager implements IObserver{
     SimulationManager simManager;
     private long sumOfAnimals = 0;
     private long sumOfPlants = 0;
-    HashMap<Genome, Integer> allGenomes = new HashMap<>();  //TODO do the genome stats
+    //stores all occurrences of a genome in the history
+    private HashMap<Genome, Integer> allGenomes = new HashMap<>();
+    //stores the count of each genome in the current generation, updated via the notify method
+    HashMap<Genome, Integer> currGenGenomes = new HashMap<>();
     private float sumOfAvgEnergy = 0f;
     private float sumOfAvgBabies = 0f;
     private float sumOfAvgLifespans = 0f;
     private float sumOfAvgAge = 0f;
     boolean nowCollecting = false;
     private long allDeadAnimals = 0;
-    private long allLifespans = 0;  //this can be the biggest here
+    private long allLifespans = 0;  //this can be the biggest number here
     private int collectingStartDate;
 
     //TODO add action enum and pass it to the notification
@@ -33,12 +36,37 @@ public class StatsManager implements IObserver{
             addGenome(subject.genome);
         }
     }
+
+    /**
+     * Used for displaying most dominant genomes in the list view.
+     * @return a list of data pairs of Most dominant Genomes with their number of occurrences in the living animals.
+     */
+
+    public List<DataPair<Genome, Integer>> getCurrGenDominantGenomesData(){
+        return getDominantGenomesData(currGenGenomes);
+    }
+
+    private List<DataPair<Genome, Integer>> getDominantGenomesData(HashMap<Genome,Integer> map) {
+        final List<DataPair<Genome, Integer>> resultList = new ArrayList<>();
+        int currentMaxValue = Integer.MIN_VALUE;
+        for (java.util.Map.Entry<Genome, Integer> entry : map.entrySet()){
+            if (entry.getValue() > currentMaxValue){    //if we found a more dominant genome
+                resultList.clear();                     //clear results, add the new one, update the currentMax value
+                resultList.add(new DataPair<>(entry.getKey(), entry.getValue()));
+                currentMaxValue = entry.getValue();
+            } else if (entry.getValue() == currentMaxValue){    //if its as dominant as the previous one, just add it
+                resultList.add(new DataPair<>(entry.getKey(), entry.getValue()));
+            }
+            //else it is weaker, ignore it
+        }
+        return resultList;
+    }
+
     enum currGenDataKeys {CURR_GEN, ANIMALS, PLANTS, AVG_ENERGY, AVG_LIFESPAN, AVG_BABIES, AVG_AGE}
     HashMap<currGenDataKeys, DataPair<String, String>> currGenData = new HashMap<>();
 
     public StatsManager(SimulationManager simManager){
         this.simManager = simManager;
-        //TODO should be ints maybe?
         currGenData.put(currGenDataKeys.CURR_GEN, new DataPair<>("Current generation","?"));
         currGenData.put(currGenDataKeys.ANIMALS, new DataPair<>("Animal count","?"));
         currGenData.put(currGenDataKeys.PLANTS, new DataPair<>("Plant count","?"));
@@ -49,6 +77,7 @@ public class StatsManager implements IObserver{
     }
 
     public void updateCurrGenData(){
+        /////////////////////////////////////////////current stats
         Map map = this.simManager.getMap();
         float energySum = 0;
         float babySum = 0;
@@ -72,6 +101,7 @@ public class StatsManager implements IObserver{
         setNewValueAtKey(currGenDataKeys.AVG_BABIES, (String.format("%.2f",avgBabies)));
         setNewValueAtKey(currGenDataKeys.AVG_AGE, (String.format("%.2f",avgAge)));
 
+        /////////////////////////////////////////////stats to save file
         if(nowCollecting){
             sumOfAnimals+=animalCount;
             sumOfPlants+=plantCount;
@@ -79,6 +109,16 @@ public class StatsManager implements IObserver{
             sumOfAvgLifespans+=avgLifespan;
             sumOfAvgBabies+=avgBabies;
             sumOfAvgAge+=avgAge;
+            currGenGenomes.forEach((key, value) -> {
+                //if the genome is altready in the map, increment it count by the value in currGenGenomes map
+                if (allGenomes.containsKey(key)) {
+                    allGenomes.put(key, allGenomes.get(key) + value);
+                }
+                //otherwise add the entry to the map
+                else {
+                    allGenomes.put(key, value);
+                }
+            });
         }
     }
     private void setNewValueAtKey(currGenDataKeys key, String value){
@@ -99,32 +139,37 @@ public class StatsManager implements IObserver{
 
     public void stopCollectingDataAndSave(){    //TODO needs some buttons
         int collectingTime = simManager.getCurrentGen()-collectingStartDate;
-        String data = "Data from gen no " + collectingStartDate + " to gen no " + simManager.getCurrentGen() + "\n" +
+        StringBuilder data = new StringBuilder("Data from gen no " + collectingStartDate + " to gen no " + simManager.getCurrentGen() + "\n" +
                 "Data has been collected for " + collectingTime + " generations." + "\n" +
                 String.format("%-45s %.2f", "Average animal count per generation:", (float) sumOfAnimals / collectingTime) + "\n" +
                 String.format("%-45s %.2f", "Average plant count per generation:", (float) sumOfPlants / collectingTime) + "\n" +
                 String.format("%-45s %.2f", "Average animal energy per generation:", sumOfAvgEnergy / collectingTime) + "\n" +
                 String.format("%-45s %.2f", "Average dead animal lifespan per generation:", sumOfAvgLifespans / collectingTime) + "\n" +
                 String.format("%-45s %.2f", "Average babies per animal per generation:", sumOfAvgBabies / collectingTime) + "\n" +
-                String.format("%-45s %.2f", "Average alive animal age per generation:", sumOfAvgAge / collectingTime) + "\n";
+                String.format("%-45s %.2f", "Average alive animal age per generation:", sumOfAvgAge / collectingTime) + "\n" +
+                String.format("%-45s", "The most dominant genomes were:\n"));
+        for(DataPair<Genome, Integer> dp : getDominantGenomesData(allGenomes)){
+            data.append(String.format("Genome %10s with %d occurrences.\n", dp.getFirst(), dp.getSecond()));
+        }
+        data.append("\n");
         String pathname = "output.txt";
         createFile(pathname);
-        writeUsingFileWriter(data,pathname);
+        writeUsingFileWriter(data.toString(), pathname);
     }
     private static void writeUsingFileWriter(String data, String pathname) {
         File file = new File(pathname);
         FileWriter fr = null;
         try {
-            fr = new FileWriter(file);
+            fr = new FileWriter(file, true);
             fr.write(data);
-            System.out.println("Successfully saved the data to "+pathname);
+            System.out.println("Successfully saved the data to "+pathname+".");
         } catch (IOException e) {
             e.printStackTrace();
         }finally{
             //close resources
             try {
                 fr.close();
-            } catch (IOException e) {
+            } catch (IOException|NullPointerException e) {
                 e.printStackTrace();
             }
         }
@@ -138,7 +183,7 @@ public class StatsManager implements IObserver{
                 System.out.println("File already exists.");
             }
         } catch (IOException e) {
-            System.out.println("An error occurred.");
+            System.out.println("An error occurred while saving.");
             e.printStackTrace();
         }
     }
@@ -153,13 +198,13 @@ public class StatsManager implements IObserver{
 
     //TODO animals could have a reference to allGenomes keys, to save a bt of space, but i dont know if its a good idea.
     public void addGenome(Genome genome){
-        if(!allGenomes.containsKey(genome)) allGenomes.put(genome, 1);
-        else allGenomes.put(genome, allGenomes.get(genome)+1);
+        if(!currGenGenomes.containsKey(genome)) currGenGenomes.put(genome, 1);
+        else currGenGenomes.put(genome, currGenGenomes.get(genome)+1);
     }
     private void removeGenome(Genome genome){
         //genome should always be in allGenomes
-        int newCount = allGenomes.get(genome)-1;
-        if(newCount == 0)allGenomes.remove(genome);
-        else allGenomes.put(genome, newCount);
+        int newCount = currGenGenomes.get(genome)-1;
+        if(newCount == 0)currGenGenomes.remove(genome);
+        else currGenGenomes.put(genome, newCount);
     }
 }

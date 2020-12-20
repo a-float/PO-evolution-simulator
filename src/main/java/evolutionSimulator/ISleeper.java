@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 /**
  * Can ask an instance of IClock to for a waking up after a set amount of time (generations)

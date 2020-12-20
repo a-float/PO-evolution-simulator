@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -43,7 +43,7 @@ public class SaveStatControl extends Pane implements Initializable, ISleeper {
             return;
         }
         saveStatLogLabel.setTextFill(Color.BLACK);
-        saveStatLogLabel.setText("Stats will be saved in generation no "+(simManager.getCurrentGen()+timeToCollect));
+        saveStatLogLabel.setText("Stats will be saved in generation no "+(simManager.getCurrentGen()+timeToCollect)+".");
         simManager.startDataSave();
         simManager.addAlarm(this, timeToCollect);
     }
@@ -65,7 +65,7 @@ public class SaveStatControl extends Pane implements Initializable, ISleeper {
     public void wakeUp() {
         simManager.endDataSave();
         saveStatLogLabel.setTextFill(Color.GREEN);  //TODO add an error log or smth
-        saveStatLogLabel.setText("Data has been saved successfully");
+        saveStatLogLabel.setText("Data has been saved successfully.");
 //        else{
 //            saveDataLogLabel.setTextFill(Color.RED);
 //            saveDataLogLabel.setText("An error while saving occurred.");

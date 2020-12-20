@@ -3,10 +3,10 @@
 <?import java.util.*?>
 <?import javafx.scene.layout.*?>
 
-<?import sample.SimulationControl?>
+<?import evolutionSimulator.SimulationControl?>
 <HBox xmlns="http://javafx.com/javafx/11.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="sample.MainControl">
+            fx:controller="evolutionSimulator.MainControl">
     <SimulationControl fx:id="sim1"/>
     <SimulationControl fx:id="sim2"/>
     <fx:define>

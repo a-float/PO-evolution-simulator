@@ -1,4 +1,4 @@
-package sample;
+package evolutionSimulator;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -20,10 +20,7 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Manages the simulation. Draws the map on the canvas, updates the current generation statistics.
@@ -34,19 +31,19 @@ public class SimulationControl extends VBox implements Initializable {
     @FXML
     Canvas canvas;
     @FXML
-    Slider speedSlider;
+    Slider speedSlider; //addSpeedControl?
     @FXML
     ChartControl chartControl;
-    @FXML
-    Label label6;       //TODO handle genomes
     @FXML
     TrackingControl trackControl;
     @FXML
     SaveStatControl saveStatControl;
     @FXML
     ListView<DataPair> currGenStatsListView;
-
-    Vector2 selectedPos = null; //position of the selected tile on the map. Used for drawing.
+    @FXML
+    ListView<DataPair<Genome, Integer>> genomeStatListView;
+    private List<Animal> selectedGenomeAnimals = new ArrayList<>(3);
+    private Vector2 selectedPos = null; //position of the selected tile on the map. Used for drawing.
 
     public SimulationManager simManager;
     boolean isPlaying = false;
@@ -84,7 +81,22 @@ public class SimulationControl extends VBox implements Initializable {
                 }
             }
         });
-
+        genomeStatListView.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(DataPair data, boolean empty) {
+                super.updateItem(data, empty);
+                if (empty || data == null || data.getStringPair() == null) {
+                    setText(null);
+                } else {
+                    setText(data.getStringPair());
+                }
+            }
+        });
+        final Tooltip tooltip = new Tooltip();
+        tooltip.setText(
+                "Click on a genome\nto show its owners on the map.\nOf teh animals stops moving, it means its dead."
+        );
+        genomeStatListView.setTooltip(tooltip);
         Platform.runLater(this::showMap);
         Platform.runLater(this::showCurrGenData);
         Platform.runLater(() -> trackControl.setManager(simManager));
@@ -143,6 +155,7 @@ public class SimulationControl extends VBox implements Initializable {
 
     private void nextGen(){
         selectedPos = null; //this too
+//        selectedGenomeAnimals.clear();
         trackControl.clearAnimalSelection();     //TODO this should be somewhere else
         simManager.simulateGen();
         showMap();
@@ -169,15 +182,13 @@ public class SimulationControl extends VBox implements Initializable {
     //TODO multiple getMaps in this class?
     public void showCurrGenData(){
         currGenStatsListView.getItems().clear();
-        for(DataPair<String, String> dp: simManager.statManager.getCurrGenDataInOrder()) { //TODO make it getStatManager?
-            currGenStatsListView.getItems().add(dp);
-        }
-        if(simManager.getGenomeData().size() > 0) {
-            label6.setText(getKeysWithMaxValue(simManager.getGenomeData()).get(0).toString());
-        }
-        else{
-            label6.setText("none");
-        }
+        //TODO make it getStatManager?
+        simManager.getCurrStatData().forEach(dp -> currGenStatsListView.getItems().add(dp));
+
+        genomeStatListView.getItems().clear();
+        simManager.getDominantGenomesData().forEach(dp -> {
+            genomeStatListView.getItems().add(dp);
+        });
     }
 
     public void showMap() { //TODO hardcoded colors
@@ -196,7 +207,6 @@ public class SimulationControl extends VBox implements Initializable {
         //draw jungle
         gc.setFill(Color.DARKSEAGREEN);
         gc.fillRect(map.jungleStartPos.x*cellSize, map.jungleStartPos.y*cellSize, jungleWidth, jungleHeight);
-        //draw selected square
         //draw plants
         map.plants.values().forEach(plant -> {
             gc.setFill(plant.getColor());
@@ -207,9 +217,30 @@ public class SimulationControl extends VBox implements Initializable {
             gc.setFill(animal.getColor());
             gc.fillRect(animal.position.x*cellSize, animal.position.y*cellSize, cellSize, cellSize);
         });
+        //draw selected square
         if(selectedPos!=null) {
-            gc.setFill(Color.BLACK);
+            gc.setStroke(Color.BLACK);
             gc.strokeRect(selectedPos.x * cellSize, selectedPos.y * cellSize, cellSize, cellSize);
+        }
+        //draw animals tracked by their dominant genome
+        selectedGenomeAnimals.forEach(animal -> {
+            gc.setFill(Color.BLUE);
+            gc.fillRect(animal.position.x * cellSize, animal.position.y * cellSize, cellSize, cellSize);
+        });
+    }
+
+    @FXML
+    private void clearSelectedGenomesPositions(){
+        selectedGenomeAnimals.clear();
+    }
+    @FXML
+    private void addSelectedGenomesPositions(){
+        if(!isPlaying) {
+            clearSelectedGenomesPositions();
+            Genome genomeToShow = genomeStatListView.getSelectionModel().getSelectedItem().getFirst();
+            selectedGenomeAnimals.addAll(simManager.getAnimalsByGenome(genomeToShow));
+            System.out.println(selectedGenomeAnimals);
+            showMap();
         }
     }
 
@@ -223,23 +254,4 @@ public class SimulationControl extends VBox implements Initializable {
         canvas.setWidth(width);
         canvas.setHeight(height);
     }
-
-
-    //TODO move it somewhere else, maybe separate class
-    //TODO also, its hacked to return the biggest value
-    public static List<Genome> getKeysWithMaxValue(HashMap<Genome, Integer> map){
-        final List<Genome> resultList = new ArrayList<>();
-        int currentMaxValuevalue = Integer.MIN_VALUE;
-        for (java.util.Map.Entry<Genome, Integer> entry : map.entrySet()){
-            if (entry.getValue() > currentMaxValuevalue){
-                resultList.clear();
-                resultList.add(entry.getKey());
-                currentMaxValuevalue = entry.getValue();
-            } else if (entry.getValue() == currentMaxValuevalue){
-                resultList.add(entry.getKey());
-            }
-        }
-        return resultList;
-    }
-
 }
