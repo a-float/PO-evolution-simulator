@@ -1,26 +1,29 @@
 package sample;
 
+import com.sun.media.jfxmediaimpl.platform.Platform;
+
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
 //TODO plants map not needed rn
-public class Map extends AbstractISubject{
+public class Map{
     int mapWidth;
     int mapHeight;
     HashMap<Vector2, AnimalCollectionList> animalMap = new HashMap<>();
+    HashMap<Vector2, Plant> plants = new HashMap<>();   //needed for drawing plants
     List<Animal> animals = new ArrayList<>();
-    HashMap<Vector2, Plant> plants = new HashMap<>();
-    HashMap<Genome, Integer> genomeMap = new HashMap<>();   //maps every animal genome on the map to the number of its occurrences
     Set<Vector2> noHasPlant = new HashSet<>(); //used to avoid plant collisions
     Set<Vector2> hasAnimal = new HashSet<>(); //used to keep track of where the animals are
 //    float jungleRatio;  //TODO change all the ints below?
     Vector2 jungleStartPos;
     Vector2 jungleEndPos;
+    SimulationManager simManger; //TODO all animals should be observed by the simManager only?
 
-
-
+    public void setSimManager(SimulationManager simManager){
+        this.simManger = simManager;
+    }
     public Map(int width, int height, float jungleRatio){
         mapWidth = width;
         mapHeight = height;
@@ -54,9 +57,7 @@ public class Map extends AbstractISubject{
             if (currAnimal.energy <= 0) { //animal dies [*]
                 //remove from the AnimalCollection
                 removeAnimal(currAnimal);
-                removeGenome(currAnimal.genome);
                 currAnimal.die();
-                notifyObservers(currAnimal);
                 iter.remove();  //removing from animals
             } else {
                 Vector2 newPosition = currAnimal.getNewRawPosition();   //could be oob
@@ -81,7 +82,7 @@ public class Map extends AbstractISubject{
                 for(Animal animalToFeed: animalsToFeed){    //actual feeding
                     animalToFeed.eat((int)plantEnergy/animalsToFeed.size());
                 }
-                plants.remove(currPos); //remove the plant
+                plants.remove(currPos);
                 noHasPlant.add(currPos); //there is no plant anymore
             }
         }
@@ -109,14 +110,17 @@ public class Map extends AbstractISubject{
         }
     }
 
-    /**
+    /** //TODO update descirption with observer info
      * Adds the new animal to the animals list, animalMap and hasAnimal
+     * Used only once per animal
      * @param animal animal to add
      */
     private void placeNewAnimal(Animal animal){
         animals.add(animal);
         animalMap.get(animal.position).add(animal);
         hasAnimal.add(animal.position);
+        animal.addObserver(simManger.statManager);  //all animals are tracked by the stat manager
+        animal.notifyObservers(AnimalEvent.NEW_ANIMAL, null);;
     }
 
     private void moveAnimal(Animal animal, Vector2 dest, int moveCost){
@@ -149,14 +153,14 @@ public class Map extends AbstractISubject{
         placeNewAnimal(animalToAdd);
     }
 
-    public void spawnGrass(){
+    public void spawnPlant(){
         //0 for false and 1 for true. Planting outside the jungle first, then inside it
         //kind of hacky, but results in a loop
         for(int i = 0; i <= 1; i++) {
             Vector2 plantPos = pickPlantFreeTile(i==1);
             if (plantPos != null) {
-                plants.put(plantPos, new Plant(plantPos));
                 //System.out.printf("planting a grass on %s%n",plantPos);
+                plants.put(plantPos, new Plant(plantPos));
                 noHasPlant.remove(plantPos);
             }
         }
@@ -189,6 +193,7 @@ public class Map extends AbstractISubject{
         return true;
     }
 
+    //TODO could be a generic function? maybe not
     private Vector2 getRandomVecFromSet(Set<Vector2> set){
         int index = new Random().nextInt(set.size());
         Iterator<Vector2> iter = set.iterator();
@@ -196,24 +201,5 @@ public class Map extends AbstractISubject{
             iter.next();
         }
         return iter.next();
-    }
-
-    //TODO finish implementing genomeMap
-    public void addGenome(Genome genome){
-        if(!genomeMap.containsKey(genome)) genomeMap.put(genome, 1);
-        else genomeMap.put(genome, genomeMap.get(genome)+1);
-    }
-    private void removeGenome(Genome genome){
-        int newCount = genomeMap.get(genome)-1;
-        if(newCount == 0)genomeMap.remove(genome);
-        else genomeMap.put(genome, newCount);
-    }
-
-
-    @Override
-    public void notifyObservers(Animal baby) {
-        for(IObserver observer : observers){
-            observer.notify(null, baby);
-        }
     }
 }

@@ -4,20 +4,28 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<fx:root minHeight="120.0" prefHeight="125.0" prefWidth="602.0" type="javafx.scene.layout.Pane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root minHeight="120.0" prefHeight="138.0" prefWidth="478.0" type="javafx.scene.layout.Pane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
         <children>
-            <ListView fx:id="selectedAnimalsListView" layoutX="5.0" layoutY="37.0" prefHeight="86.0" prefWidth="276.0" />
-            <Label layoutX="5.0" prefHeight="41.0" prefWidth="276.0" text="Select a map tile, then choose an animal from the list below and input number the of generations" wrapText="true">
+            <ListView fx:id="selectedAnimalsListView" layoutX="8.0" layoutY="42.0" prefHeight="94.0" prefWidth="227.0" />
+            <Label layoutX="5.0" prefHeight="41.0" prefWidth="344.0" text="Select a map tile, then choose an animal from the list on the left and input number of generations you'd like to track the animal for." wrapText="true">
          <font>
             <Font size="11.0" />
          </font></Label>
-            <TextField fx:id="timeInput" layoutX="287.0" layoutY="18.0" prefHeight="25.0" prefWidth="130.0" promptText="Tracking time (n)" />
-            <Button layoutX="287.0" layoutY="99.0" mnemonicParsing="false" onAction="#startTracking" prefHeight="25.0" prefWidth="58.0" text="Start" />
-            <ListView fx:id="trackingListView" layoutX="424.0" layoutY="18.0" prefHeight="106.0" prefWidth="177.0" />
-      <Label fx:id="trackingOutput" alignment="CENTER" layoutX="287.0" layoutY="44.0" prefHeight="41.0" prefWidth="130.0" textAlignment="CENTER" wrapText="true">
+            <TextField fx:id="timeInput" layoutX="240.0" layoutY="42.0" prefHeight="25.0" prefWidth="96.0" promptText="Tracking time (n)">
+         <font>
+            <Font size="11.0" />
+         </font></TextField>
+            <Button layoutX="239.0" layoutY="112.0" mnemonicParsing="false" onAction="#startTracking" prefHeight="25.0" prefWidth="50.0" text="Start" />
+            <ListView fx:id="trackingListView" layoutX="343.0" layoutY="29.0" prefHeight="107.0" prefWidth="128.0" />
+      <Label fx:id="trackingOutput" alignment="CENTER" layoutX="237.0" layoutY="69.0" prefHeight="41.0" prefWidth="102.0" textAlignment="CENTER" wrapText="true">
          <font>
             <Font size="10.0" />
          </font></Label>
-      <Button layoutX="359.0" layoutY="99.0" mnemonicParsing="false" onAction="#stopTracking" prefHeight="25.0" prefWidth="58.0" text="Stop" />
+      <Button layoutX="289.0" layoutY="112.0" mnemonicParsing="false" onAction="#cancelAlarm" prefHeight="25.0" prefWidth="50.0" text="Stop" />
+      <Label alignment="TOP_LEFT" layoutX="356.0" layoutY="7.0" prefHeight="32.0" prefWidth="177.0" text="Tracking output:" textAlignment="CENTER" wrapText="true">
+         <font>
+            <Font size="10.0" />
+         </font>
+      </Label>
         </children>
 </fx:root>

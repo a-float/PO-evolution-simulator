@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class TrackingControl extends Pane implements Initializable, IObserver {
+public class TrackingControl extends Pane implements Initializable, IObserver, ISleeper {
     @FXML
     TextField timeInput;
     @FXML
@@ -23,18 +23,25 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
     @FXML
     ListView<DataPair> trackingListView;
     @FXML
-    ListView<Animal> selectedAnimalsListView;   //TODO change it to animal Collection somehow?
+    ListView<Animal> selectedAnimalsListView, trackedAnimListView;   //TODO change it to animal Collection somehow?
 
+    //has the data changed after the last showTrackData(), slightly decreases the amount of trackingListView updates
+    private boolean dataHasChanged = true;
     SimulationManager simManager;
+
+    @Override
+    public void wakeUp() {
+        stopTracking();
+    }
+
     enum dataKey {DEATH, CHILDREN, DESCENDANTS}
     HashMap<dataKey, DataPair> trackingData = new HashMap<>();
     Animal trackedAnimal = null;
     //used to remove itself from observers of the animals after finishing tracking
     List<Animal> observed = new ArrayList<>();  //tracked animals descendants + tracked animal
-    boolean tracking = false;
+    boolean tracking = false;   //TODO unnecessary variable?
 
     public TrackingControl(){
-        System.out.println("TrackingControl constructed.");
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/tracking.fxml"));
         loader.setRoot(this);
         loader.setController(this);
@@ -45,9 +52,9 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
             // this is pretty much fatal, so:
             System.exit(1);
         }
-        trackingData.put(dataKey.DEATH, new DataPair("Died in gen no", "???"));
-        trackingData.put(dataKey.CHILDREN, new DataPair("Children count", "0"));
-        trackingData.put(dataKey.DESCENDANTS, new DataPair("Descendant count", "0"));  //TODO add 's'?
+        trackingData.put(dataKey.DEATH, new DataPair<>("Died in gen no", "???"));
+        trackingData.put(dataKey.CHILDREN, new DataPair<>("Children count", 0));
+        trackingData.put(dataKey.DESCENDANTS, new DataPair<>("Descendant count", 0));  //TODO add 's'?
 //        trackingData.put(dataKey., new DataPair("Gens left to track:", "0"));
     }
 
@@ -72,10 +79,14 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
             logToUser("Invalid observing time. Please input a positive number", Color.RED);
             return;
         }
+        if(tracking){
+            logToUser("Aleady tracking. Stop first.", Color.RED);
+            return;
+        }
         trackedAnimal = animalToTrack;
         trackedAnimal.addObserver(this);
         tracking = true;
-        simManager.setTrackingStopTime(timeToTrack, this);
+        simManager.addAlarm(this, timeToTrack);
         resetDataPairs();
         showTrackingData();
         logToUser("Tracking unit gen no "+(simManager.getCurrentGen()+timeToTrack), Color.BLACK);
@@ -91,9 +102,10 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
     }
 
     public void resetDataPairs(){
-        trackingData.get(dataKey.DEATH).setValue("???");
-        trackingData.get(dataKey.CHILDREN).setValue("0");
-        trackingData.get(dataKey.DESCENDANTS).setValue("0");
+        trackingData.get(dataKey.DEATH).setSecond("???");
+        trackingData.get(dataKey.CHILDREN).setSecond(0);
+        trackingData.get(dataKey.DESCENDANTS).setSecond(0);
+        dataHasChanged = true;
     }
 
     @Override
@@ -104,10 +116,10 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
             protected void updateItem(Animal animal, boolean empty) {
                 super.updateItem(animal, empty);
 
-                if (empty || animal == null || animal.toString() == null) {
+                if (empty || animal == null || animal.toShortString() == null) {
                     setText(null);
                 } else {
-                    setText(animal.toString());
+                    setText(animal.toShortString());
                 }
             }
         });
@@ -115,57 +127,80 @@ public class TrackingControl extends Pane implements Initializable, IObserver {
             @Override
             protected void updateItem(DataPair data, boolean empty) {
                 super.updateItem(data, empty);
-                if (empty || data == null || data.getPair() == null) {
+                if (empty || data == null || data.getStringPair() == null) {
                     setText(null);
                 } else {
-                    setText(data.getPair());
+                    setText(data.getStringPair());
                 }
             }
         });
-        trackingOutput.setTextFill(Color.RED);
         showTrackingData();
     }
 
-    private void showTrackingData() {
-        trackingListView.getItems().clear();
-        for(dataKey key: dataKey.values()) {    //order like in the enum
-            trackingListView.getItems().add(trackingData.get(key));
+    public void showTrackingData() {
+        if(dataHasChanged) {
+            trackingListView.getItems().clear();
+            for (dataKey key : dataKey.values()) {    //order like in the enum
+                trackingListView.getItems().add(trackingData.get(key));
+            }
+            dataHasChanged = false;
         }
     }
 
+    /**
+     * is triggered by both parent animals when they have a child
+     * used to count the number or trackedAnimal descendants
+     * @param event describes what has happened
+     * @param parent animal that has been observed
+     * @param newborn its child - will be observed as well
+     */
     @Override
-    public void notify(Animal parent, Animal newborn) {
-        if (parent == trackedAnimal && newborn != null){    //parent is calling - new child
-            DataPair dp = trackingData.get(dataKey.CHILDREN);
-            int newChildCount = Integer.parseInt(dp.getValue())+1;
-            dp.setValue(Integer.toString(newChildCount));
-            newborn.addObserver(this);
-            observed.add(newborn);
+    public void notify(AnimalEvent event, Animal parent, Animal newborn) {
+        if(!tracking) System.out.println("NOTIFIED WHILE NOT TRACKING?!");
+        if(event == AnimalEvent.DEATH && parent == trackedAnimal){
+            trackingData.get(dataKey.DEATH).setSecond(Integer.toString(simManager.getCurrentGen()));
+            dataHasChanged = true;
         }
-        else if (newborn != null){    //some descended had a new baby
-            DataPair dp = trackingData.get(dataKey.DESCENDANTS);
-            int newDescCount = Integer.parseInt(dp.getValue())+1;
-            dp.setValue(Integer.toString(newDescCount));
-            newborn.addObserver(this);
-            observed.add(newborn);
+        else if(event == AnimalEvent.NEW_CHILD){
+            if(newborn == null) {
+                throw new IllegalArgumentException("There can't be a NEW_CHILD with null newborn");
+            }
+            if(!newborn.isObservedBy(this)) {   //it hasn't been counted yet
+                if (parent == trackedAnimal) {   //its a new direct child
+                    incrementValue(trackingData.get(dataKey.CHILDREN));
+                }
+                //every child is also a descendant
+                //else its some further descendant
+                incrementValue(trackingData.get(dataKey.DESCENDANTS));
+                newborn.addObserver(this);
+                observed.add(newborn);
+                dataHasChanged = true;
+            }
         }
-        else if (parent == trackedAnimal) { //parent = trackedAnimal has died [*] (newborn is null)
-            trackingData.get(dataKey.DEATH).setValue(Integer.toString(simManager.getCurrentGen()));
-        }
-        showTrackingData();  //TODO updates too often but oh well
     }
 
-    public void stopTracking(){
+    @FXML
+    public void cancelAlarm(){
+        simManager.fireAlarmEarly(this);
+    }
+
+    public void clearAnimalSelection(){
+        this.selectedAnimalsListView.getItems().clear();
+    }
+    private void stopTracking(){
         tracking = false;
         trackedAnimal = null;
         for(Animal subject : observed){
             subject.removeObserver(this);
         }
-        simManager.cancelTrackingStopTime(); //TODO bad name
         logToUser("Tracking finished at gen no."+this.simManager.getCurrentGen(), Color.GREEN);
     }
 
     public void setManager(SimulationManager simManager){
         this.simManager = simManager;
+    }
+
+    private void incrementValue(DataPair<String, Integer> dataPair){
+        dataPair.setSecond(dataPair.getSecond()+1);
     }
 }

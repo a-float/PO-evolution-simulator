@@ -1,51 +1,46 @@
 package sample;
 
 /**
- * used as a data storage
+ * used for storing data
+ * Integer values are used, when incrementing them is needed.
  */
-public class DataPair {
-    private String name;
-    private String value;
+public class DataPair<N,V> implements IDataPair<N,V> {
+    private N first;
+    private V second;
 
-    DataPair(String name, String data){
-        this.name = name;
-        this.value = data;
+    DataPair(N first, V second){
+        this.first = first;
+        this.second = second;
     }
 
     public String toString(){
-        return "{name: "+name+", value: "+value+"}";
+        return "{name: "+ first +", value: "+ second +"}";
     }
 
-    public String getPair(){
-        return String.format("%-27s: %s",name, value);
+    public String getStringPair(){
+        return String.format("%s: %s", first, second);
     }
 
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//        DataPair dataPair = (DataPair) o;
-//        return Objects.equals(name, dataPair.name) && Objects.equals(value, dataPair.value);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(name, value);
-//    }
-
-    public String getName() {
-        return name;
+    public N getFirst() {
+        return first;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @Override
+    public void setFirst(N first) {
+        this.first = first;
     }
 
-    public String getValue() {
-        return value;
+    @Override
+    public N getFirst(N name) {
+        return this.first;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    @Override
+    public void setSecond(V second) {
+        this.second = second;
+    }
+    @Override
+    public V getSecond() {
+        return second;
     }
 }

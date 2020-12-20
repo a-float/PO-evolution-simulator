@@ -1,8 +1,8 @@
-Data from gen no 100 to gen no 400
-Data has been collected for 300 generations.
-Average animal count per generation:          8,43
-Average plant count per generation:           182,06
-Average animal energy per generation:         93,67
-Average dead animal lifespan per generation:  75,35
-Average babies per animal per generation:     0,00
-Average alive animal age per generation:      250,50
+Data from gen no 1274 to gen no 1774
+Data has been collected for 500 generations.
+Average animal count per generation:          56,78
+Average plant count per generation:           38,22
+Average animal energy per generation:         312,53
+Average dead animal lifespan per generation:  169,62
+Average babies per animal per generation:     1,20
+Average alive animal age per generation:      1030,28

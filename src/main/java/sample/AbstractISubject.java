@@ -14,7 +14,11 @@ public abstract class AbstractISubject implements ISubject {
     public void removeObserver(IObserver observer) {
         observers.remove(observer);
     }
-
     @Override
-    public abstract void notifyObservers(Animal baby);
+    public boolean isObservedBy(IObserver observer){
+        for(IObserver obs: observers){
+            if(obs == observer)return true; //checking just the references
+        }
+        return false;
+    }
 }

@@ -25,16 +25,23 @@ public class MainControl implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        for (SimulationControl sim : simulationList) { //TODO pass varables as parameters somehwere
+        for (SimulationControl simControl : simulationList) { //TODO pass varables as parameters somehwere
             if(mapWidth*mapHeight < startAnimalCount){
-                throw new ArrayIndexOutOfBoundsException("Invalid data in parameters.json. Too many animals.");
+                throw new IllegalArgumentException("Invalid data in parameters.json. Too many animals.");
             }
             if(mapWidth*mapHeight < startPlantCount){
-                throw new ArrayIndexOutOfBoundsException("Invalid data in parameters.json. Too many plants.");
+                throw new IllegalArgumentException("Invalid data in parameters.json. Too many plants.");
             }
             Map map = new Map(mapWidth, mapHeight, jungleRatio);
-            SimulationManager simManager = new SimulationManager(map, startAnimalCount, startPlantCount, startEnergy, moveEnergy, plantEnergy);
-            sim.setManager(simManager);
+            SimulationManager simManager = new SimulationManager(map,startEnergy, moveEnergy, plantEnergy);
+            map.setSimManager(simManager);  //TODO maybe fix setting up simManagers
+            simManager.setUpMap(startAnimalCount, startPlantCount);
+            simControl.setManager(simManager);
+            double cellSize = simControl.getCellSize();
+            //sets canvas size according to its map dimensions.
+            //allows for centering of non square maps.
+            simControl.setSize((int)Math.round(mapWidth*cellSize), (int)Math.round(mapHeight*cellSize));
+
         }
     }
 

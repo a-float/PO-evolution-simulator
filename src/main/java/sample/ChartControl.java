@@ -19,10 +19,9 @@ public class ChartControl extends Pane implements Initializable {
     @FXML
     private NumberAxis xAxis;
 
-    private int xSeriesData = 0;
     private static final int MAX_DATA_POINTS = 60;
-    private final XYChart.Series<Number, Number> animalSeries = new XYChart.Series<>();
-    private final XYChart.Series<Number, Number> plantSeries = new XYChart.Series<>();
+    private final XYChart.Series<Integer, Integer> animalSeries = new XYChart.Series<>();
+    private final XYChart.Series<Integer, Integer> plantSeries = new XYChart.Series<>();
 
     public ChartControl(){
         System.out.println("ChartControl constructed.");
@@ -41,13 +40,12 @@ public class ChartControl extends Pane implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setUpChart();
-        System.out.println("chart initialised");
     }
 
     private void setUpChart(){
         xAxis.setTickUnit(10f);
         xAxis.setAutoRanging(false);
-        areaChart.setTitle("Animated Line Chart");
+//        areaChart.setTitle("Animated Line Chart");
         areaChart.setHorizontalGridLinesVisible(true);
 
         animalSeries.setName("Animal count");
@@ -55,10 +53,13 @@ public class ChartControl extends Pane implements Initializable {
         areaChart.getData().addAll(animalSeries, plantSeries);
     }
 
-    public void updateChart(int newAnimalCount, int newPlantCount){
+    public void updateChart(int currGen, int newAnimalCount, int newPlantCount){
 //        System.out.println("updating chart");
-        animalSeries.getData().add(new XYChart.Data<>(xSeriesData++, newAnimalCount));
-        plantSeries.getData().add(new XYChart.Data<>(xSeriesData++, newPlantCount));
+        animalSeries.getData().add(new XYChart.Data<>(currGen, newAnimalCount));
+        plantSeries.getData().add(new XYChart.Data<>(currGen, newPlantCount));
+//        for(XYChart.Data<Integer, Integer> dp: animalSeries.getData()){
+//            System.out.println(dp);
+//        }
 
         // remove points to keep us at no more than MAX_DATA_POINTS //TODO did not use capslock anywhere else
         if (animalSeries.getData().size() > MAX_DATA_POINTS) {
@@ -68,7 +69,7 @@ public class ChartControl extends Pane implements Initializable {
             plantSeries.getData().remove(0, 1);
         }
         // update
-        xAxis.setLowerBound(xSeriesData - MAX_DATA_POINTS);
-        xAxis.setUpperBound(xSeriesData - 1);
+        xAxis.setLowerBound(currGen - MAX_DATA_POINTS+1);
+        xAxis.setUpperBound(currGen);
     }
 }

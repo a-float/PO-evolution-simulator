@@ -25,6 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
+/**
+ * Manages the simulation. Draws the map on the canvas, updates the current generation statistics.
+ * Controls play speed of the simulation.
+ */
 public class SimulationControl extends VBox implements Initializable {
     //TODO tidy up the whole controller, maybe break it up into smaller pieces
     @FXML
@@ -34,17 +38,18 @@ public class SimulationControl extends VBox implements Initializable {
     @FXML
     ChartControl chartControl;
     @FXML
-    Label label6;
+    Label label6;       //TODO handle genomes
     @FXML
     TrackingControl trackControl;
     @FXML
+    SaveStatControl saveStatControl;
+    @FXML
     ListView<DataPair> currGenStatsListView;
 
-    Vector2 selectedPos = null;
+    Vector2 selectedPos = null; //position of the selected tile on the map. Used for drawing.
 
     public SimulationManager simManager;
     boolean isPlaying = false;
-    double cellSize;
     Timeline timer;
 
     public SimulationControl() {
@@ -60,12 +65,11 @@ public class SimulationControl extends VBox implements Initializable {
             System.exit(1);
         }
     }
-
+    //TODO show all animals with dominant genome
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        System.out.println("SimulationController initialized.");
         // This will now be called after the @FXML-annotated fields are initialized.
-        createTimer(1f/speedSlider.getValue());
+        createTimer(0.1f/speedSlider.getValue());
         speedSlider.valueProperty().addListener((obs, oldValue, newValue) -> changeSimulationSpeed(newValue.doubleValue()));
 
 //        //TODO same as in trackingControl
@@ -73,26 +77,32 @@ public class SimulationControl extends VBox implements Initializable {
             @Override
             protected void updateItem(DataPair data, boolean empty) {
                 super.updateItem(data, empty);
-                if (empty || data == null || data.getPair() == null) {
+                if (empty || data == null || data.getStringPair() == null) {
                     setText(null);
                 } else {
-                    setText(data.getPair());
+                    setText(data.getStringPair());
                 }
             }
         });
 
         Platform.runLater(this::showMap);
-        Platform.runLater(this::updateStatLabels);
+        Platform.runLater(this::showCurrGenData);
         Platform.runLater(() -> trackControl.setManager(simManager));
+        Platform.runLater(() -> saveStatControl.setManager(simManager));
     }
 
 
+    /**
+     * Handles selecting a tile from the map.
+     * Passes the animals from the selected tile to the tracking control.
+     * @param event not really needed
+     */
     @FXML
-    private void canvasClicked(MouseEvent event){   //TODO its bad rn
+    private void canvasClicked(MouseEvent event){
         if(!isPlaying) {
             Map map = simManager.getMap();
             Bounds bounds = canvas.getBoundsInLocal();
-            cellSize = Math.min(bounds.getWidth() / map.mapWidth, bounds.getHeight() / map.mapHeight);
+            double cellSize = Math.min(bounds.getWidth() / map.mapWidth, bounds.getHeight() / map.mapHeight);
             int x = (int) Math.floor(event.getX() / cellSize);
             int y = (int) Math.floor(event.getY() / cellSize);
             selectedPos = new Vector2(x, y);
@@ -109,14 +119,18 @@ public class SimulationControl extends VBox implements Initializable {
         }
     }
 
-    //cannot step while the simulation is not paused
+    /**
+     * generate one step of the simulation
+     * cannot step while the simulation is not paused
+     * @param event not used
+     */
     @FXML
     private void doStep (ActionEvent event) {
         if(!isPlaying)nextGen();
     }
 
     @FXML
-    private void startOrStopSimulation (ActionEvent event) {
+    private void toggleSimulationPlaying(ActionEvent event) {
         if(isPlaying)timer.pause();
         else timer.play();
         isPlaying = !isPlaying;
@@ -124,18 +138,18 @@ public class SimulationControl extends VBox implements Initializable {
 
     @FXML
     private void changeSimulationSpeed (double speed) {
-//        System.out.println(speed);
         createTimer(0.1/speed);
     }
 
     private void nextGen(){
         selectedPos = null; //this too
-        trackControl.selectedAnimalsListView.getItems().clear();     //TODO this should be somewhere else
+        trackControl.clearAnimalSelection();     //TODO this should be somewhere else
         simManager.simulateGen();
         showMap();
-        updateStatLabels();
+        showCurrGenData();
+        trackControl.showTrackingData();
         Map map = simManager.getMap();
-        chartControl.updateChart(map.animals.size(), map.mapHeight*map.mapWidth- map.noHasPlant.size());
+        chartControl.updateChart(simManager.getCurrentGen(), map.animals.size(), map.plants.size());
     }
 
     public void setManager(SimulationManager simManager) {
@@ -153,27 +167,24 @@ public class SimulationControl extends VBox implements Initializable {
     }
 
     //TODO multiple getMaps in this class?
-    public void updateStatLabels(){
-        Map map = simManager.getMap();
-
+    public void showCurrGenData(){
         currGenStatsListView.getItems().clear();
-        for(DataPair dp: simManager.statManager.getCurrGenDataInOrder()) { //TODO make it getStatManager?
+        for(DataPair<String, String> dp: simManager.statManager.getCurrGenDataInOrder()) { //TODO make it getStatManager?
             currGenStatsListView.getItems().add(dp);
         }
-        if(map.genomeMap.size() > 0) {
-            label6.setText(getKeysWithMaxValue(map.genomeMap).get(0).toString());
+        if(simManager.getGenomeData().size() > 0) {
+            label6.setText(getKeysWithMaxValue(simManager.getGenomeData()).get(0).toString());
         }
         else{
             label6.setText("none");
         }
     }
 
-
     public void showMap() { //TODO hardcoded colors
         GraphicsContext gc = canvas.getGraphicsContext2D(); //TODO setting cellSize and these variables is similar
         Bounds bounds = canvas.getBoundsInLocal();
         Map map = simManager.getMap();
-        cellSize = Math.min(bounds.getWidth()/map.mapWidth, bounds.getHeight()/map.mapHeight);
+        double cellSize = Math.min(bounds.getWidth()/map.mapWidth, bounds.getHeight()/map.mapHeight);
 
         gc.clearRect(0, 0, bounds.getWidth(), bounds.getHeight());
         Vector2 jungleSize = Vector2.subtract(map.jungleEndPos, map.jungleStartPos);
@@ -181,7 +192,7 @@ public class SimulationControl extends VBox implements Initializable {
         double jungleHeight = jungleSize.y*cellSize;
         //draw background
         gc.setFill(Color.LIGHTGREEN);
-        gc.fillRect(0, 0, bounds.getWidth(), bounds.getHeight());
+        gc.fillRect(0, 0, map.mapWidth*cellSize, map.mapHeight*cellSize);
         //draw jungle
         gc.setFill(Color.DARKSEAGREEN);
         gc.fillRect(map.jungleStartPos.x*cellSize, map.jungleStartPos.y*cellSize, jungleWidth, jungleHeight);
@@ -202,11 +213,17 @@ public class SimulationControl extends VBox implements Initializable {
         }
     }
 
+    public double getCellSize(){
+        Map map = simManager.getMap();
+        return Math.min(400/map.mapWidth, 400/map.mapHeight);   //TDO hardcoded size
+    }
+
     //TODO maybe remove setSize
     public void setSize(int width, int height) {
         canvas.setWidth(width);
         canvas.setHeight(height);
     }
+
 
     //TODO move it somewhere else, maybe separate class
     //TODO also, its hacked to return the biggest value

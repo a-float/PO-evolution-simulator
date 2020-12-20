@@ -1,71 +1,86 @@
 package sample;
 
-import javafx.fxml.FXML;
+import java.util.*;
 
-import javax.sound.midi.Track;
-import javax.xml.crypto.Data;
-import java.util.ArrayList;
-import java.util.List;
 
-public class SimulationManager {
+public class SimulationManager implements IClock{
     Map map;
     int startEnergy;
     int moveEnergy;
     int plantEnergy;
     int currentGen = 0;
-    TrackingControl trackControl;
-    StatsManager statManager;
+    StatsManager statManager;   //TODO make it private?
+    List<DataPair<ISleeper, Integer>> alarmSchedule = new LinkedList<>();
 
     //TODO create a map in constructor?
-    public SimulationManager(Map map, int startAnimalCount, int startPlantCount, int startEnergy, int moveEnergy, int plantEnergy){
+    public SimulationManager(Map map, int startEnergy, int moveEnergy, int plantEnergy){
         this.map = map;
         this.startEnergy = startEnergy;
         this.moveEnergy = moveEnergy;
         this.plantEnergy = plantEnergy;
         statManager = new StatsManager(this);       //TODO fix crash on too many animals/plants at the start
+    }
+    public void setUpMap(int startAnimalCount, int startPlantCount){
         for(int i = 0; i < startAnimalCount; i++){
             map.placeAnimalAtRandom(startEnergy);
         }
         for(int i = 0; i < startPlantCount; i++){
-            map.spawnGrass();
+            map.spawnPlant();
         }
     }
     public void simulateGen(){
-        map.spawnGrass();
+        map.spawnPlant();
         map.killOrMoveAnimals(moveEnergy);
         map.feedAnimals(plantEnergy);
         map.breedAnimals(startEnergy);
         currentGen++;
         statManager.updateCurrGenData();
-        System.out.println("Advancing to gen "+currentGen+".");
-        if(currentGen == stopTrackingTime){
-            trackControl.stopTracking();
-        }
+//        System.out.println("Advancing to gen "+currentGen+".");
+        checkAlarmSchedule();
         //TODO remove it
-        if(currentGen == 100)statManager.startCollectingDataForSave();
-        if(currentGen == 400)statManager.stopCollectingDataAndSave();
 //        map.genomeMap.forEach((key, value) -> System.out.println(key + " " + value));
     }
-
+    public void startDataSave(){
+        statManager.startCollectingDataForSave();
+    }
+    public void endDataSave(){
+        statManager.stopCollectingDataAndSave();
+    }
     public Map getMap(){
         return map;
     }
     public int getCurrentGen(){return currentGen;}
-    int stopTrackingTime;       //TODO move variables up
 
-
-    public void setTrackingStopTime(int trackingTime, TrackingControl trackControl){   //TODO change this to something smarter
-        stopTrackingTime = currentGen + trackingTime;
-        this.trackControl = trackControl;           //TODO happens only once anyway
-    }
-    public void cancelTrackingStopTime(){   //TODO change this to something smarter
-        stopTrackingTime = -1;
+    public HashMap<Genome, Integer> getGenomeData(){
+        return statManager.allGenomes; //TODO maybe a getter in statManager //TODO should pick the most dominant ones
     }
 
-//    public void setTrackControl(TrackingControl trackControl){
-//        this.trackControl = trackControl;
-//    }
+    @Override
+    public void addAlarm(ISleeper sleeper, int timeToWakeUp) {
+        alarmSchedule.add(new DataPair<ISleeper, Integer>(sleeper, currentGen+timeToWakeUp));
+    }
 
-
-
+    @Override
+    public void checkAlarmSchedule() {
+        Iterator<DataPair<ISleeper,Integer>> iter = alarmSchedule.iterator();
+        while(iter.hasNext()){
+            DataPair<ISleeper, Integer> dp = iter.next();
+            if(dp.getSecond() == currentGen){
+                dp.getFirst().wakeUp();
+                System.out.println(dp);
+                iter.remove();
+            }
+        }
+    }
+    public void fireAlarmEarly(ISleeper sleeper){
+        Iterator<DataPair<ISleeper,Integer>> iter = alarmSchedule.iterator();
+        while(iter.hasNext()){
+            DataPair<ISleeper, Integer> dp = iter.next();
+            if(dp.getFirst() == sleeper){
+                dp.getFirst().wakeUp();
+                iter.remove();
+                break;
+            }
+        }
+    }
 }

@@ -9,37 +9,43 @@ import java.util.List;
 
 public class StatsManager implements IObserver{
     SimulationManager simManager;
-    int sumOfAnimals = 0;
-    int sumOfPlants = 0;
+    private long sumOfAnimals = 0;
+    private long sumOfPlants = 0;
     HashMap<Genome, Integer> allGenomes = new HashMap<>();  //TODO do the genome stats
-    float sumOfAvgEnergy = 0f;
-    float sumOfAvgBabies = 0f;
-    float sumOfAvgLifespans = 0f;
-    float sumOfAvgAge = 0f;
-    boolean collecting = false;
-    int allDeadAnimals = 0;
-    int allLifespans = 0;
-    int collectingStartDate;
+    private float sumOfAvgEnergy = 0f;
+    private float sumOfAvgBabies = 0f;
+    private float sumOfAvgLifespans = 0f;
+    private float sumOfAvgAge = 0f;
+    boolean nowCollecting = false;
+    private long allDeadAnimals = 0;
+    private long allLifespans = 0;  //this can be the biggest here
+    private int collectingStartDate;
 
+    //TODO add action enum and pass it to the notification
     @Override
-    public void notify(Animal parent, Animal newborn) {
-        if(parent == null){
-            allLifespans+=newborn.age;
+    public void notify(AnimalEvent event, Animal subject, Animal newborn) { //gets notified by the map it observes when an animal dies
+        if(event == AnimalEvent.DEATH){
+            allLifespans+=subject.age;
             allDeadAnimals++;
+            removeGenome(subject.genome);
+        }
+        else if(event == AnimalEvent.NEW_ANIMAL){
+            addGenome(subject.genome);
         }
     }
-    enum currGenDataKeys {ANIMALS, PLANTS, AVG_ENERGY, AVG_LIFESPAN, AVG_BABIES, AVG_AGE}
-    HashMap<currGenDataKeys, DataPair> currGenData = new HashMap<>();
+    enum currGenDataKeys {CURR_GEN, ANIMALS, PLANTS, AVG_ENERGY, AVG_LIFESPAN, AVG_BABIES, AVG_AGE}
+    HashMap<currGenDataKeys, DataPair<String, String>> currGenData = new HashMap<>();
 
     public StatsManager(SimulationManager simManager){
         this.simManager = simManager;
-        this.simManager.getMap().addObserver(this); //tracking map for lifespans TODO maybe shouldn't?
-        currGenData.put(currGenDataKeys.ANIMALS, new DataPair("Animal count","?"));
-        currGenData.put(currGenDataKeys.PLANTS, new DataPair("Plant count","?"));
-        currGenData.put(currGenDataKeys.AVG_ENERGY, new DataPair("Average energy","?"));
-        currGenData.put(currGenDataKeys.AVG_LIFESPAN, new DataPair("Average lifespan","?"));
-        currGenData.put(currGenDataKeys.AVG_BABIES, new DataPair("Avg. children per animal","?"));
-        currGenData.put(currGenDataKeys.AVG_AGE, new DataPair("Avg. animal age","?"));
+        //TODO should be ints maybe?
+        currGenData.put(currGenDataKeys.CURR_GEN, new DataPair<>("Current generation","?"));
+        currGenData.put(currGenDataKeys.ANIMALS, new DataPair<>("Animal count","?"));
+        currGenData.put(currGenDataKeys.PLANTS, new DataPair<>("Plant count","?"));
+        currGenData.put(currGenDataKeys.AVG_ENERGY, new DataPair<>("Average energy","?"));
+        currGenData.put(currGenDataKeys.AVG_LIFESPAN, new DataPair<>("Average lifespan","?"));
+        currGenData.put(currGenDataKeys.AVG_BABIES, new DataPair<>("Avg. children per animal","?"));
+        currGenData.put(currGenDataKeys.AVG_AGE, new DataPair<>("Avg. animal age","?"));
     }
 
     public void updateCurrGenData(){
@@ -58,6 +64,7 @@ public class StatsManager implements IObserver{
         float avgLifespan = (float)allLifespans/allDeadAnimals;
         float avgBabies = babySum/animalCount;
         float avgAge = ageSum/animalCount;
+        setNewValueAtKey(currGenDataKeys.CURR_GEN, Integer.toString(simManager.getCurrentGen()));   //TODO remove simManager.currentGen, use getter
         setNewValueAtKey(currGenDataKeys.ANIMALS, Integer.toString(animalCount));
         setNewValueAtKey(currGenDataKeys.PLANTS, Integer.toString(plantCount));
         setNewValueAtKey(currGenDataKeys.AVG_ENERGY, (String.format("%.2f",avgEnergy)));
@@ -65,7 +72,7 @@ public class StatsManager implements IObserver{
         setNewValueAtKey(currGenDataKeys.AVG_BABIES, (String.format("%.2f",avgBabies)));
         setNewValueAtKey(currGenDataKeys.AVG_AGE, (String.format("%.2f",avgAge)));
 
-        if(collecting){
+        if(nowCollecting){
             sumOfAnimals+=animalCount;
             sumOfPlants+=plantCount;
             sumOfAvgEnergy+=avgEnergy;
@@ -74,9 +81,8 @@ public class StatsManager implements IObserver{
             sumOfAvgAge+=avgAge;
         }
     }
-
     private void setNewValueAtKey(currGenDataKeys key, String value){
-        currGenData.get(key).setValue(value);
+        currGenData.get(key).setSecond(value);
     }
 
     public void startCollectingDataForSave(){
@@ -87,7 +93,7 @@ public class StatsManager implements IObserver{
         sumOfAvgBabies = 0f;
         sumOfAvgLifespans = 0f;
         sumOfAvgAge = 0f;
-        collecting = true;
+        nowCollecting = true;
         collectingStartDate = simManager.getCurrentGen();
     }
 
@@ -111,7 +117,7 @@ public class StatsManager implements IObserver{
         try {
             fr = new FileWriter(file);
             fr.write(data);
-            System.out.println("Succesfully saved the data to "+pathname);
+            System.out.println("Successfully saved the data to "+pathname);
         } catch (IOException e) {
             e.printStackTrace();
         }finally{
@@ -137,11 +143,23 @@ public class StatsManager implements IObserver{
         }
     }
 
-    public List<DataPair> getCurrGenDataInOrder(){
-        ArrayList<DataPair> data = new ArrayList<>(8);
+    public List<DataPair<String, String>> getCurrGenDataInOrder(){
+        ArrayList<DataPair<String, String>> data = new ArrayList<>(8);
         for(currGenDataKeys key: currGenDataKeys.values()){
             data.add(currGenData.get(key));
         }
         return data;
+    }
+
+    //TODO animals could have a reference to allGenomes keys, to save a bt of space, but i dont know if its a good idea.
+    public void addGenome(Genome genome){
+        if(!allGenomes.containsKey(genome)) allGenomes.put(genome, 1);
+        else allGenomes.put(genome, allGenomes.get(genome)+1);
+    }
+    private void removeGenome(Genome genome){
+        //genome should always be in allGenomes
+        int newCount = allGenomes.get(genome)-1;
+        if(newCount == 0)allGenomes.remove(genome);
+        else allGenomes.put(genome, newCount);
     }
 }

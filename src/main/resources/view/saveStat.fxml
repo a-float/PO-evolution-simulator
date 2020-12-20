@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<fx:root minHeight="120.0" prefHeight="138.0" prefWidth="132.0" type="javafx.scene.layout.Pane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label alignment="TOP_CENTER" layoutX="1.0" layoutY="1.0" prefHeight="54.0" prefWidth="130.0" text="Choose how long the average data be collected for." textAlignment="CENTER" wrapText="true">
+         <font>
+            <Font size="10.0" />
+         </font></Label>
+      <TextField fx:id="dataCollectionTimeTextField" layoutX="35.0" layoutY="47.0" prefHeight="26.0" prefWidth="60.0" />
+      <Label fx:id="saveStatLogLabel" alignment="TOP_CENTER" contentDisplay="TOP" layoutX="5.0" layoutY="75.0" prefHeight="54.0" prefWidth="109.0" text="Data will be saved to output.txt in the project directory." wrapText="true">
+      <font>
+         <Font size="10.0" />
+      </font></Label>
+      <Button layoutX="56.0" layoutY="110.0" mnemonicParsing="false" onAction="#startDataSave" prefHeight="24.0" prefWidth="68.0" text="Start save" />
+   </children>
+</fx:root>
