@@ -4,10 +4,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import evolutionSimulator.TrackingControl?>
+<?import evolutionSimulator.AnimalTrackControl?>
 <?import evolutionSimulator.ChartControl?>
 <?import evolutionSimulator.SaveStatControl?>
-
+<?import evolutionSimulator.GenomeTrackControl?>
 <fx:root prefHeight="541.0" prefWidth="606.0" type="javafx.scene.layout.VBox" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <javafx.scene.layout.HBox>
@@ -15,14 +15,12 @@
             <children>
                <Pane prefHeight="400.0" prefWidth="328.0">
                   <children>
+                     <ChartControl fx:id="chartControl" />
+                     <ListView fx:id="currGenStatsListView" layoutX="3.0" layoutY="135.0" prefHeight="155.0" prefWidth="200.0" />
+                     <GenomeTrackControl fx:id="genomeTrackControl" layoutY="294.0"/>
                      <Button fx:id="stepButton" layoutX="10.0" layoutY="362.0" mnemonicParsing="false" onAction="#doStep" text="Step" />
                      <Slider fx:id="speedSlider" blockIncrement="1.0" layoutX="94.0" layoutY="368.0" majorTickUnit="4.0" max="15.0" min="1.0" minorTickCount="2" prefHeight="14.0" prefWidth="92.0" showTickLabels="true" value="5.0" />
                      <Button fx:id="startStopButton" layoutX="55.0" layoutY="362.0" mnemonicParsing="false" onAction="#toggleSimulationPlaying" text="&gt;||" />
-                     <ChartControl fx:id="chartControl" />
-                     <Label fx:id="label6" layoutX="9.0" layoutY="333.0" prefHeight="17.0" prefWidth="171.0" text="[..............................................................]" />
-                     <ListView fx:id="currGenStatsListView" layoutX="3.0" layoutY="168.0" prefHeight="125.0" prefWidth="200.0" />
-                     <Label layoutX="3.0" layoutY="295.0" prefHeight="20.0" prefWidth="200.0" text="Dominant genomes:" />
-                     <ListView fx:id="genomeStatListView" layoutX="0.0" layoutY="315.0" onMouseClicked="#addSelectedGenomesPositions" prefHeight="42.0" prefWidth="202.0" />
                   </children>
                </Pane>
                <StackPane minHeight="-Infinity" minWidth="-Infinity" prefHeight="323.0" prefWidth="400.0">
@@ -34,7 +32,7 @@
          </HBox>
       </javafx.scene.layout.HBox>
       <HBox prefHeight="144.0" prefWidth="606.0">
-         <TrackingControl fx:id="trackControl" />
+         <AnimalTrackControl fx:id="animalTrackControl" />
          <SaveStatControl fx:id="saveStatControl" />
       </HBox>
    </children>

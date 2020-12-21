@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Animal extends AbstractDrawable implements ISubject{   //TODO can't extend AbstractSubject :c
+public class Animal extends AbstractDrawable implements ISubject{
     Genome genome;
     int energy, babyCount, age;
     Direction currDirection;
@@ -32,10 +32,15 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
         return getInterpolatedColor(energy/100f);
     }
 
-    //returns a new animal if there is an empty tile around the parents, returns null otherwise
+    /**
+     *
+     * @param mama first parent
+     * @param papa second parent
+     * @return new animal with genome created by mixing parents genomes
+     */
     public static Animal deliverBaby(Animal mama, Animal papa) {
         Vector2 babyPosition = null;
-        Vector2[] possiblePositions = mama.position.getAdjecentPositions();
+        Vector2[] possiblePositions = mama.position.getAdjacentPositions();
         shuffleVectorArray(possiblePositions);
         for (Vector2 pos : possiblePositions){
             if (!mama.map.hasAnimal.contains(pos)) {
@@ -44,7 +49,7 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
         }
         if (babyPosition == null) { //all the tiles around are occupied
             //no place for a child -> choose a random one
-            babyPosition = mama.position.getAdjecentPositions()[random.nextInt(8)];
+            babyPosition = mama.position.getAdjacentPositions()[random.nextInt(8)];
         }
         mama.babyCount++;
         papa.babyCount++;
@@ -59,9 +64,13 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
         return baby;
     }
 
+    /**
+     * @return sum of animal position and its direction's unit vector. May be out of map bounds.
+     */
     public Vector2 getNewRawPosition(){
         return Vector2.add(position,currDirection.toUnitVector());
     }
+
 
     public void move(Vector2 newPos, int moveCost){
         position = newPos;
@@ -78,16 +87,36 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
         energy += eatEnergy;
     }
 
+    /**
+     * @return a random direction from animals genome
+     */
     private Direction pickDirection(){
         return Direction.fromInt(genome.chooseGene());
     }
 
     public String toString(){
-        return String.format("Animal (pos = (%d, %d) energy = %d, dir = %s", position.x, position.y, energy, currDirection);
+        return String.format("Animal (pos = (%d, %d) energy = %d, dir = %s)", position.x, position.y, energy, currDirection);
     }
 
     public String toShortString(){
         return String.format("Animal [energy=%d, dir=%s]", energy, currDirection);
+    }
+
+    /**
+     * shuffles array contents
+     * used to randomize baby animal spawning tile
+     * @param arr array to shuffle
+     */
+    static void shuffleVectorArray(Vector2[] arr)
+    {
+        for (int i = arr.length - 1; i > 0; i--)
+        {
+            int index = random.nextInt(i + 1);
+            // Simple swap
+            Vector2 a = arr[index];
+            arr[index] = arr[i];
+            arr[i] = a;
+        }
     }
 
     //////ISubject code
@@ -113,18 +142,6 @@ public class Animal extends AbstractDrawable implements ISubject{   //TODO can't
     public void notifyObservers(AnimalEvent event, Animal newborn) {
         for(IObserver observer: observers){
             observer.notify(event, this, newborn);
-        }
-    }
-
-    static void shuffleVectorArray(Vector2[] arr)
-    {
-        for (int i = arr.length - 1; i > 0; i--)
-        {
-            int index = random.nextInt(i + 1);
-            // Simple swap
-            Vector2 a = arr[index];
-            arr[index] = arr[i];
-            arr[i] = a;
         }
     }
 }

@@ -20,6 +20,7 @@ public class Map{
     public void setSimManager(SimulationManager simManager){
         this.simManger = simManager;
     }
+
     public Map(int width, int height, float jungleRatio){
         mapWidth = width;
         mapHeight = height;
@@ -96,7 +97,6 @@ public class Map{
                     Animal baby = Animal.deliverBaby(parents.get(0), parents.get(1));
                     baby.position = parseAnimalPosition(baby.position);
                     newBabies.add(baby);
-                    System.out.println(newBabies);
                 }
             }
         }
@@ -118,7 +118,7 @@ public class Map{
         hasAnimal.add(animal.position);
         animal.setMap(this);
         animal.addObserver(simManger.getStatManager());  //all animals are tracked by the stat manager
-        animal.notifyObservers(AnimalEvent.NEW_ANIMAL, null);;
+        animal.notifyObservers(AnimalEvent.NEW_ANIMAL, null);
     }
 
     private void moveAnimal(Animal animal, Vector2 dest, int moveCost){
@@ -200,9 +200,9 @@ public class Map{
      */
     public boolean isInJungle(Vector2 vec){
         if(vec.x < jungleStartPos.x)return false;
-        if(vec.x > jungleEndPos.x)return false;
-        if(vec.y < jungleStartPos.x)return false;
-        if(vec.y > jungleEndPos.y)return false;
+        if(vec.x >= jungleEndPos.x)return false;
+        if(vec.y < jungleStartPos.y)return false;
+        if(vec.y >= jungleEndPos.y)return false;
         return true;
     }
 

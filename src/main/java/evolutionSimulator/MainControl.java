@@ -13,31 +13,52 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
+import static java.lang.System.exit;
+
 public class MainControl implements Initializable {
     int mapWidth, mapHeight, startAnimalCount, startPlantCount, startEnergy, moveEnergy, plantEnergy;
     float jungleRatio;
+    int CANVAS_PARENT_SIZE = 400;
     @FXML
     ArrayList<SimulationControl> simulationList;
 
     public MainControl(){
-        loadDataFromJSON();
-    }
-
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        for (SimulationControl simControl : simulationList) { //TODO pass varables as parameters somehwere
+        try {
+            loadDataFromJSON();
+            if(mapWidth <= 0 || mapHeight <=0){
+                throw new IllegalArgumentException("Invalid data in parameters.json. Negative map dimension.");
+            }
+            if(startAnimalCount < 0){
+                throw new IllegalArgumentException("Invalid data in parameters.json. Negative number of starting animals.");
+            }
+            if(startPlantCount < 0){
+                throw new IllegalArgumentException("Invalid data in parameters.json. Negative number of starting plants.");
+            }
+            if(jungleRatio < 0 || jungleRatio > 1){
+                throw new IllegalArgumentException("Invalid data in parameters.json. jungleRatio is not in [0,1] range");
+            }
             if(mapWidth*mapHeight < startAnimalCount){
                 throw new IllegalArgumentException("Invalid data in parameters.json. Too many animals.");
             }
             if(mapWidth*mapHeight < startPlantCount){
                 throw new IllegalArgumentException("Invalid data in parameters.json. Too many plants.");
             }
+        }
+        catch(IOException e){
+            e.printStackTrace();
+            exit(1);
+        }
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        for (SimulationControl simControl : simulationList) {
             Map map = new Map(mapWidth, mapHeight, jungleRatio);
-            SimulationManager simManager = new SimulationManager(map,startEnergy, moveEnergy, plantEnergy);
-            map.setSimManager(simManager);  //TODO maybe fix setting up simManagers
+            SimulationManager simManager = new SimulationManager(map, startEnergy, moveEnergy, plantEnergy);
+            map.setSimManager(simManager);
             simManager.setUpMap(startAnimalCount, startPlantCount);
             simControl.setManager(simManager);
-            double cellSize = simControl.getCellSize();
+            double cellSize = simControl.getCellSize(CANVAS_PARENT_SIZE);
             //sets canvas size according to its map dimensions.
             //allows for centering of non square maps.
             simControl.setSize((int)Math.round(mapWidth*cellSize), (int)Math.round(mapHeight*cellSize));
@@ -45,7 +66,7 @@ public class MainControl implements Initializable {
         }
     }
 
-    private void loadDataFromJSON(){
+    private void loadDataFromJSON() throws IOException {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader("parameters.json"))
         {
@@ -63,10 +84,8 @@ public class MainControl implements Initializable {
             moveEnergy = (int)(long) data.get("moveEnergy");
             plantEnergy = (int)(long) data.get("plantEnergy");
 
-        } catch (ParseException | IOException e) {  //TODO handle error
-            System.out.println("errror reading json");
-            e.printStackTrace();
-//            throw new IOException("Error while handling the json file.");
+        } catch (ParseException | IOException e) {
+            throw new IOException("Error while handling the json file.");
         }
     }
 }

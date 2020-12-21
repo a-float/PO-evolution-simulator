@@ -19,6 +19,10 @@ public class AnimalCollectionList {
         return animalList.remove(animalToRemove);
     }
 
+    /**
+     * @return a list of animals with largest energy stored in this collection
+     * an empty list if the collection is empty
+     */
     public List<Animal> getAllStrongest(){
         ArrayList<Animal> result = new ArrayList<>();
         if(animalList.size() == 0)return result;
@@ -40,6 +44,10 @@ public class AnimalCollectionList {
         return result;
     }
 
+    /**
+     * @return a list of two strongest animals in the collection.
+     * an empty list if the collection size is smaller than 2
+     */
     public List<Animal> getTwoStrongest(){
         if(animalList.size()<2) return new ArrayList<>(0);
         Animal[] result = new Animal[2];

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root xmlns="http://javafx.com/javafx"
+         xmlns:fx="http://javafx.com/fxml" type="javafx.scene.layout.Pane">
+    <Label layoutX="3.0" prefHeight="20.0" prefWidth="200.0" text="Dominant genomes:" />
+    <ListView fx:id="genomeStatListView" layoutY="21.0" onMouseClicked="#setSelectedGenomePositions" prefHeight="46.0" prefWidth="204.0" />
+</fx:root>

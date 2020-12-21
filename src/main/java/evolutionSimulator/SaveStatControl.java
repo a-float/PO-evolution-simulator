@@ -24,6 +24,10 @@ public class SaveStatControl extends Pane implements Initializable, ISleeper {
         this.simManager = simManager;
     }
 
+    /**
+     * orders the StatManager to start collecting data for a save
+     * @param event not used
+     */
     @FXML
     private void startDataSave(ActionEvent event){
         int timeToCollect;
@@ -61,18 +65,17 @@ public class SaveStatControl extends Pane implements Initializable, ISleeper {
         }
     }
 
+    /**
+     *  Time to save the data. Call the simManager, and lof the result
+     */
     @Override
     public void wakeUp() {
         simManager.endDataSave();
-        saveStatLogLabel.setTextFill(Color.GREEN);  //TODO add an error log or smth
+        saveStatLogLabel.setTextFill(Color.GREEN);
         saveStatLogLabel.setText("Data has been saved successfully.");
-//        else{
-//            saveDataLogLabel.setTextFill(Color.RED);
-//            saveDataLogLabel.setText("An error while saving occurred.");
-//        }
     }
 
     @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {    //TODO should it be empty?
+    public void initialize(URL url, ResourceBundle resourceBundle) {
     }
 }

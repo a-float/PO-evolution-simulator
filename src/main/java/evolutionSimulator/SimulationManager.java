@@ -9,16 +9,15 @@ public class SimulationManager implements IClock{
     int moveEnergy;
     int plantEnergy;
     int currentGen = 0;
-    private final StatsManager statManager;   //TODO make it private?
+    private final StatsManager statManager;
     List<DataPair<ISleeper, Integer>> alarmSchedule = new LinkedList<>();
 
-    //TODO create a map in constructor?
     public SimulationManager(Map map, int startEnergy, int moveEnergy, int plantEnergy){
         this.map = map;
         this.startEnergy = startEnergy;
         this.moveEnergy = moveEnergy;
         this.plantEnergy = plantEnergy;
-        statManager = new StatsManager(this);       //TODO fix crash on too many animals/plants at the start
+        statManager = new StatsManager(this);
     }
     public void setUpMap(int startAnimalCount, int startPlantCount){
         for(int i = 0; i < startAnimalCount; i++){
@@ -53,12 +52,12 @@ public class SimulationManager implements IClock{
     public int getCurrentGen(){return currentGen;}
 
     public List<DataPair<Genome, Integer>> getDominantGenomesData(){
-        return statManager.getCurrGenDominantGenomesData(); //TODO maybe a getter in statManager //TODO should pick the most dominant ones
+        return statManager.getCurrGenDominantGenomesData();
     }
 
     @Override
     public void addAlarm(ISleeper sleeper, int timeToWakeUp) {
-        alarmSchedule.add(new DataPair<ISleeper, Integer>(sleeper, currentGen+timeToWakeUp));
+        alarmSchedule.add(new DataPair<>(sleeper, currentGen+timeToWakeUp));
     }
 
     @Override

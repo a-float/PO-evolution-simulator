@@ -12,7 +12,7 @@ public class Genome {
      * @param genes - array of int in range [0,7]
      * return new Genome object with its genes set to the param
      */
-    public Genome(int[] genes){ //TODO can store genome as an array of length 8
+    public Genome(int[] genes){
         if(genes.length < 8){
             throw new IllegalArgumentException("can have a genome this short");
         }
@@ -22,11 +22,12 @@ public class Genome {
                 throw new IllegalArgumentException("gene with no corresponding direction in genome");
             }
         }
-//        if(!this.isValid()){
-//            throw new IllegalArgumentException("lacking a gene in the specified genome");
-//        }
     }
 
+    /**
+     * creates a valid genome of specified length
+     * @param length length of the genome
+     */
     public Genome(int length){
         if(length < 8){
             throw new IllegalArgumentException("can have a genome this short");
@@ -51,6 +52,9 @@ public class Genome {
         return Arrays.hashCode(genes);
     }
 
+    /**
+     * modifies the genome so that every number appears at least once
+     */
     public void repair(){
         int[] geneCount = new int[8];
         //geneCount array holds the number of occurrences of each direction in the genome
@@ -76,6 +80,12 @@ public class Genome {
         Arrays.sort(genes);     //just to make debugging easier
     }
 
+    /**
+     * Given two genomes creates a third one, by slicing the given ones in two places and then sticking the randomly choosen parts together
+     * @param main genome from which 2 parts will be taken
+     * @param other genome from which 1 part will be taken
+     * @return  a valid genome - product of mixing the arguments
+     */
     public static Genome mixGenomes(Genome main, Genome other){
         int genomeLength = main.genes.length;
         int[] result = new int[genomeLength];
@@ -88,7 +98,6 @@ public class Genome {
             cut2 = tmp;
         }
         int otherPart = getRandom(3);   //the part that will copied from the other genome
-//        System.out.printf("%d, %d, %d%n",cut1, cut2, otherPart);
 
         System.arraycopy(main.genes,0, result, 0, genomeLength);
         switch (otherPart) {
@@ -97,31 +106,42 @@ public class Genome {
             case 2 -> System.arraycopy(other.genes, cut2, result, cut2, genomeLength - cut2);
         }
         Arrays.sort(result);
-        return new Genome(result);
+        Genome newGenome = new Genome(result);
+        newGenome.repair();
+        return newGenome;
     }
 
+    /**
+     * @return true if the genome has only elements from 0 to 7 and every number appears at least once, false otherwise
+     */
     public boolean isValid(){
         int[] geneCount = new int[8];
         //geneCount array holds the number of occurrences of each direction in the genome
-        for(int g: genes)geneCount[g]++;
+        for(int g: genes){
+            if(g < 0 || g > 7)return false;
+            geneCount[g]++;
+        }
         for(int gc : geneCount){
             if(gc == 0) return false;
         }
         return true;
     }
 
+    /**
+     * @return random gene from the genome
+     */
     public int chooseGene(){
         return genes[getRandom(genes.length)];
     }
 
+    /**
+     * @param length max random value
+     * @return returns a random number in the range [0, length]
+     */
     private static int getRandom(int length) {
         return new Random().nextInt(length);
     }
 
-    //    public int[] getDominantGenes(){
-//        Map<Integer,Integer> geneCount = new HashMap<>();
-//
-//    }
 
     @Override
     public String toString(){

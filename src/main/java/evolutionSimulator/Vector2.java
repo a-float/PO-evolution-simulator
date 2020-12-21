@@ -6,11 +6,11 @@ import java.util.Random;
 /**
  * Class representing a 2D Vector of integer coordinates
  */
-public class Vector2 {  //TODO test class
+public class Vector2 {
     int x;
     int y;
 
-    public Vector2(int x, int y){     //TODO change argument names?
+    public Vector2(int x, int y){
         this.x = x;
         this.y = y;
     }
@@ -32,7 +32,8 @@ public class Vector2 {  //TODO test class
     public Vector2 opposite(){
         return new Vector2(-x, -y);
     }
-    public Vector2[] getAdjecentPositions(){        //TODO maybe move to a Tile class
+
+    public Vector2[] getAdjacentPositions(){
         Vector2[] result = new Vector2[8];
         int counter = 0;
         for(int dx = -1; dx <= 1; dx++){

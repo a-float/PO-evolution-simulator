@@ -6,6 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 
 import java.io.IOException;
@@ -53,15 +54,16 @@ public class ChartControl extends Pane implements Initializable {
         areaChart.getData().addAll(animalSeries, plantSeries);
     }
 
+    /**
+     * Add new data to the chart, and deletes the old one
+     * @param currGen new x value for both series
+     * @param newAnimalCount new y value for animal series
+     * @param newPlantCount new y value for the plants series
+     */
     public void updateChart(int currGen, int newAnimalCount, int newPlantCount){
-//        System.out.println("updating chart");
         animalSeries.getData().add(new XYChart.Data<>(currGen, newAnimalCount));
         plantSeries.getData().add(new XYChart.Data<>(currGen, newPlantCount));
-//        for(XYChart.Data<Integer, Integer> dp: animalSeries.getData()){
-//            System.out.println(dp);
-//        }
 
-        // remove points to keep us at no more than MAX_DATA_POINTS //TODO did not use capslock anywhere else
         if (animalSeries.getData().size() > MAX_DATA_POINTS) {
             animalSeries.getData().remove(0, 1);
         }

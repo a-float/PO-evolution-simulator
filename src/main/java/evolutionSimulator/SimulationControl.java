@@ -23,11 +23,10 @@ import java.net.URL;
 import java.util.*;
 
 /**
- * Manages the simulation. Draws the map on the canvas, updates the current generation statistics.
+ * Manages the simulation. Draws the map on the canvas, updates the current generation statistics, and contains the area chart.
  * Controls play speed of the simulation.
  */
-public class SimulationControl extends VBox implements Initializable {
-    //TODO tidy up the whole controller, maybe break it up into smaller pieces
+public class SimulationControl extends VBox implements Initializable{
     @FXML
     Canvas canvas;
     @FXML
@@ -35,14 +34,18 @@ public class SimulationControl extends VBox implements Initializable {
     @FXML
     ChartControl chartControl;
     @FXML
-    TrackingControl trackControl;
+    AnimalTrackControl animalTrackControl;
     @FXML
     SaveStatControl saveStatControl;
     @FXML
     ListView<DataPair> currGenStatsListView;
     @FXML
-    ListView<DataPair<Genome, Integer>> genomeStatListView;
-    private List<Animal> selectedGenomeAnimals = new ArrayList<>(3);
+    GenomeTrackControl genomeTrackControl;
+
+    private final Color GRASS_COLOR = Color.LIGHTGREEN;
+    private final Color JUNGLE_COLOR = Color.DARKSEAGREEN;
+    private final Color SINGLE_SELECT_COLOR = Color.BLACK;
+    private final Color SELECT_ANIMALS_BY_GENOME_COLOR = Color.BLUE;
     private Vector2 selectedPos = null; //position of the selected tile on the map. Used for drawing.
 
     public SimulationManager simManager;
@@ -62,14 +65,13 @@ public class SimulationControl extends VBox implements Initializable {
             System.exit(1);
         }
     }
-    //TODO show all animals with dominant genome
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // This will now be called after the @FXML-annotated fields are initialized.
         createTimer(0.1f/speedSlider.getValue());
         speedSlider.valueProperty().addListener((obs, oldValue, newValue) -> changeSimulationSpeed(newValue.doubleValue()));
 
-//        //TODO same as in trackingControl
         currGenStatsListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(DataPair data, boolean empty) {
@@ -81,33 +83,19 @@ public class SimulationControl extends VBox implements Initializable {
                 }
             }
         });
-        genomeStatListView.setCellFactory(param -> new ListCell<>() {
-            @Override
-            protected void updateItem(DataPair data, boolean empty) {
-                super.updateItem(data, empty);
-                if (empty || data == null || data.getStringPair() == null) {
-                    setText(null);
-                } else {
-                    setText(data.getStringPair());
-                }
-            }
-        });
-        final Tooltip tooltip = new Tooltip();
-        tooltip.setText(
-                "Click on a genome\nto show its owners on the map.\nOf teh animals stops moving, it means its dead."
-        );
-        genomeStatListView.setTooltip(tooltip);
+
         Platform.runLater(this::showMap);
         Platform.runLater(this::showCurrGenData);
-        Platform.runLater(() -> trackControl.setManager(simManager));
+        Platform.runLater(() -> animalTrackControl.setManager(simManager));
         Platform.runLater(() -> saveStatControl.setManager(simManager));
+        Platform.runLater(() -> genomeTrackControl.setManager(simManager));
+        Platform.runLater(() -> genomeTrackControl.setSimControl(this));
     }
-
 
     /**
      * Handles selecting a tile from the map.
      * Passes the animals from the selected tile to the tracking control.
-     * @param event not really needed
+     * @param event not used
      */
     @FXML
     private void canvasClicked(MouseEvent event){
@@ -119,13 +107,13 @@ public class SimulationControl extends VBox implements Initializable {
             int y = (int) Math.floor(event.getY() / cellSize);
             selectedPos = new Vector2(x, y);
 
-            trackControl.selectedAnimalsListView.getItems().clear();
+            animalTrackControl.selectedAnimalsListView.getItems().clear();
             AnimalCollectionList selectedAnimalCollection = simManager.getMap().animalMap.get(selectedPos);
 //            if (selectedAnimalCollection.size() == 0) {
 //                selectedAnimalsListView.getItems().add("There are no animals on this tile.");
 //            }
             for (Animal animal : selectedAnimalCollection.animalList) {   //TODO change .animalList to a getAll() or smth?
-                trackControl.selectedAnimalsListView.getItems().add(animal);
+                animalTrackControl.selectedAnimalsListView.getItems().add(animal);
             }
             showMap();
         }
@@ -156,11 +144,11 @@ public class SimulationControl extends VBox implements Initializable {
     private void nextGen(){
         selectedPos = null; //this too
 //        selectedGenomeAnimals.clear();
-        trackControl.clearAnimalSelection();     //TODO this should be somewhere else
+        animalTrackControl.clearAnimalSelection();
         simManager.simulateGen();
         showMap();
         showCurrGenData();
-        trackControl.showTrackingData();
+        animalTrackControl.showTrackingData();
         Map map = simManager.getMap();
         chartControl.updateChart(simManager.getCurrentGen(), map.animals.size(), map.plants.size());
     }
@@ -179,16 +167,11 @@ public class SimulationControl extends VBox implements Initializable {
         if(isPlaying)timer.play();
     }
 
-    //TODO multiple getMaps in this class?
     public void showCurrGenData(){
         currGenStatsListView.getItems().clear();
-        //TODO make it getStatManager?
         simManager.getCurrStatData().forEach(dp -> currGenStatsListView.getItems().add(dp));
 
-        genomeStatListView.getItems().clear();
-        simManager.getDominantGenomesData().forEach(dp -> {
-            genomeStatListView.getItems().add(dp);
-        });
+        genomeTrackControl.updateListView(simManager.getDominantGenomesData());
     }
 
     public void showMap() { //TODO hardcoded colors
@@ -202,10 +185,10 @@ public class SimulationControl extends VBox implements Initializable {
         double jungleWidth  = jungleSize.x*cellSize;
         double jungleHeight = jungleSize.y*cellSize;
         //draw background
-        gc.setFill(Color.LIGHTGREEN);
+        gc.setFill(GRASS_COLOR);
         gc.fillRect(0, 0, map.mapWidth*cellSize, map.mapHeight*cellSize);
         //draw jungle
-        gc.setFill(Color.DARKSEAGREEN);
+        gc.setFill(JUNGLE_COLOR);
         gc.fillRect(map.jungleStartPos.x*cellSize, map.jungleStartPos.y*cellSize, jungleWidth, jungleHeight);
         //draw plants
         map.plants.values().forEach(plant -> {
@@ -219,37 +202,21 @@ public class SimulationControl extends VBox implements Initializable {
         });
         //draw selected square
         if(selectedPos!=null) {
-            gc.setStroke(Color.BLACK);
+            gc.setStroke(SINGLE_SELECT_COLOR);
             gc.strokeRect(selectedPos.x * cellSize, selectedPos.y * cellSize, cellSize, cellSize);
         }
         //draw animals tracked by their dominant genome
-        selectedGenomeAnimals.forEach(animal -> {
-            gc.setFill(Color.BLUE);
+        genomeTrackControl.getAnimalsWithDominantGenome().forEach(animal -> {
+            gc.setFill(SELECT_ANIMALS_BY_GENOME_COLOR);
             gc.fillRect(animal.position.x * cellSize, animal.position.y * cellSize, cellSize, cellSize);
         });
     }
 
-    @FXML
-    private void clearSelectedGenomesPositions(){
-        selectedGenomeAnimals.clear();
-    }
-    @FXML
-    private void addSelectedGenomesPositions(){
-        if(!isPlaying) {
-            clearSelectedGenomesPositions();
-            Genome genomeToShow = genomeStatListView.getSelectionModel().getSelectedItem().getFirst();
-            selectedGenomeAnimals.addAll(simManager.getAnimalsByGenome(genomeToShow));
-            System.out.println(selectedGenomeAnimals);
-            showMap();
-        }
-    }
-
-    public double getCellSize(){
+    public double getCellSize(int size){
         Map map = simManager.getMap();
-        return Math.min(400/map.mapWidth, 400/map.mapHeight);   //TDO hardcoded size
+        return Math.min(size/map.mapWidth, size/map.mapHeight);
     }
 
-    //TODO maybe remove setSize
     public void setSize(int width, int height) {
         canvas.setWidth(width);
         canvas.setHeight(height);

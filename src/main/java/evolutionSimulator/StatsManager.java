@@ -12,9 +12,9 @@ public class StatsManager implements IObserver{
     private long sumOfAnimals = 0;
     private long sumOfPlants = 0;
     //stores all occurrences of a genome in the history
-    private HashMap<Genome, Integer> allGenomes = new HashMap<>();
+    private final HashMap<Genome, Integer> allGenomes = new HashMap<>();
     //stores the count of each genome in the current generation, updated via the notify method
-    HashMap<Genome, Integer> currGenGenomes = new HashMap<>();
+    private final HashMap<Genome, Integer> currGenGenomes = new HashMap<>();
     private float sumOfAvgEnergy = 0f;
     private float sumOfAvgBabies = 0f;
     private float sumOfAvgLifespans = 0f;
@@ -24,7 +24,15 @@ public class StatsManager implements IObserver{
     private long allLifespans = 0;  //this can be the biggest number here
     private int collectingStartDate;
 
-    //TODO add action enum and pass it to the notification
+    private enum currGenDataKeys {CURR_GEN, ANIMALS, PLANTS, AVG_ENERGY, AVG_LIFESPAN, AVG_BABIES, AVG_AGE}
+    private final HashMap<currGenDataKeys, DataPair<String, String>> currGenData = new HashMap<>();
+
+    /**
+     * Tracks all animals on the simManagers map.
+     * @param event expected AnimalEvent.DEATH or AnimalEvent.NEW_ANIMAL
+     * @param subject  the deceased or the parent
+     * @param newborn  null or baby
+     */
     @Override
     public void notify(AnimalEvent event, Animal subject, Animal newborn) { //gets notified by the map it observes when an animal dies
         if(event == AnimalEvent.DEATH){
@@ -38,14 +46,17 @@ public class StatsManager implements IObserver{
     }
 
     /**
-     * Used for displaying most dominant genomes in the list view.
+     * Used for displaying the dominant genomes in the list view.
      * @return a list of data pairs of Most dominant Genomes with their number of occurrences in the living animals.
      */
-
     public List<DataPair<Genome, Integer>> getCurrGenDominantGenomesData(){
         return getDominantGenomesData(currGenGenomes);
     }
 
+    /**
+     * @param map map to scan for animals
+     * @return List DataPairs of first=dominant genome, second=its number of occurrences
+     */
     private List<DataPair<Genome, Integer>> getDominantGenomesData(HashMap<Genome,Integer> map) {
         final List<DataPair<Genome, Integer>> resultList = new ArrayList<>();
         int currentMaxValue = Integer.MIN_VALUE;
@@ -62,8 +73,7 @@ public class StatsManager implements IObserver{
         return resultList;
     }
 
-    enum currGenDataKeys {CURR_GEN, ANIMALS, PLANTS, AVG_ENERGY, AVG_LIFESPAN, AVG_BABIES, AVG_AGE}
-    HashMap<currGenDataKeys, DataPair<String, String>> currGenData = new HashMap<>();
+
 
     public StatsManager(SimulationManager simManager){
         this.simManager = simManager;
@@ -76,6 +86,10 @@ public class StatsManager implements IObserver{
         currGenData.put(currGenDataKeys.AVG_AGE, new DataPair<>("Avg. animal age","?"));
     }
 
+    /**
+     * updates data needed for displaying current gen statistic
+     * and if is collecting for a save, data for the save output.
+     */
     public void updateCurrGenData(){
         /////////////////////////////////////////////current stats
         Map map = this.simManager.getMap();
@@ -93,7 +107,7 @@ public class StatsManager implements IObserver{
         float avgLifespan = (float)allLifespans/allDeadAnimals;
         float avgBabies = babySum/animalCount;
         float avgAge = ageSum/animalCount;
-        setNewValueAtKey(currGenDataKeys.CURR_GEN, Integer.toString(simManager.getCurrentGen()));   //TODO remove simManager.currentGen, use getter
+        setNewValueAtKey(currGenDataKeys.CURR_GEN, Integer.toString(simManager.getCurrentGen()));
         setNewValueAtKey(currGenDataKeys.ANIMALS, Integer.toString(animalCount));
         setNewValueAtKey(currGenDataKeys.PLANTS, Integer.toString(plantCount));
         setNewValueAtKey(currGenDataKeys.AVG_ENERGY, (String.format("%.2f",avgEnergy)));
@@ -110,7 +124,7 @@ public class StatsManager implements IObserver{
             sumOfAvgBabies+=avgBabies;
             sumOfAvgAge+=avgAge;
             currGenGenomes.forEach((key, value) -> {
-                //if the genome is altready in the map, increment it count by the value in currGenGenomes map
+                //if the genome is already in the map, increment it count by the value in currGenGenomes map
                 if (allGenomes.containsKey(key)) {
                     allGenomes.put(key, allGenomes.get(key) + value);
                 }
@@ -137,7 +151,7 @@ public class StatsManager implements IObserver{
         collectingStartDate = simManager.getCurrentGen();
     }
 
-    public void stopCollectingDataAndSave(){    //TODO needs some buttons
+    public void stopCollectingDataAndSave(){
         int collectingTime = simManager.getCurrentGen()-collectingStartDate;
         StringBuilder data = new StringBuilder("Data from gen no " + collectingStartDate + " to gen no " + simManager.getCurrentGen() + "\n" +
                 "Data has been collected for " + collectingTime + " generations." + "\n" +
@@ -151,11 +165,12 @@ public class StatsManager implements IObserver{
         for(DataPair<Genome, Integer> dp : getDominantGenomesData(allGenomes)){
             data.append(String.format("Genome %10s with %d occurrences.\n", dp.getFirst(), dp.getSecond()));
         }
-        data.append("\n");
+        data.append("\n\n");
         String pathname = "output.txt";
         createFile(pathname);
         writeUsingFileWriter(data.toString(), pathname);
     }
+
     private static void writeUsingFileWriter(String data, String pathname) {
         File file = new File(pathname);
         FileWriter fr = null;
@@ -168,12 +183,13 @@ public class StatsManager implements IObserver{
         }finally{
             //close resources
             try {
-                fr.close();
-            } catch (IOException|NullPointerException e) {
+                if(fr != null) fr.close();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
     private void createFile(String pathname){
         try {
             File myObj = new File(pathname);
@@ -196,7 +212,6 @@ public class StatsManager implements IObserver{
         return data;
     }
 
-    //TODO animals could have a reference to allGenomes keys, to save a bt of space, but i dont know if its a good idea.
     public void addGenome(Genome genome){
         if(!currGenGenomes.containsKey(genome)) currGenGenomes.put(genome, 1);
         else currGenGenomes.put(genome, currGenGenomes.get(genome)+1);

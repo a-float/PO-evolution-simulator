@@ -7,7 +7,6 @@ public enum Direction {
     SOUTH, SOUTHWEST, WEST, NORTHWEST;
 
     /**
-     *
      * Y-axis is inverted, because the drawing is done with the Y-axis poiting downwards
      * @return Vector2 pointing in specified direction inverted on the Y-axis
      */
@@ -23,12 +22,22 @@ public enum Direction {
             case NORTHWEST -> new Vector2(-1,-1);
         };
     }
+
+    /**
+     * @param rotation angle is rotation * 45deg
+     * @return a direction which is rotated by rotation * 45deg from the give one
+     */
     public Direction rotateBy(int rotation){
         int len = Direction.values().length;
         //Math.floorMod is needed because in java % is a remainder, not python like modulus
         return Direction.values()[Math.floorMod(this.ordinal()+rotation, len)];
     }
 
+    /**
+     * @param dirIndex direction index
+     * @return  Direction represented by the dirIndex
+     * @throws ArrayIndexOutOfBoundsException if the index is not in range [0,7]
+     */
     public static Direction fromInt(int dirIndex) throws ArrayIndexOutOfBoundsException{
         try {
            return Direction.values()[dirIndex];
@@ -38,6 +47,10 @@ public enum Direction {
             throw new ArrayIndexOutOfBoundsException(message);
         }
     }
+
+    /**
+     * @return a random enum value
+     */
     public static Direction getRandomDirection(){
         return Direction.values()[new Random().nextInt(Direction.values().length)];
     }
