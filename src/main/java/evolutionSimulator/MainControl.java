@@ -41,7 +41,7 @@ public class MainControl implements Initializable {
                 throw new IllegalArgumentException("Invalid data in parameters.json. Too many animals.");
             }
         }
-        catch(IOException e){
+        catch(Exception e){
             e.printStackTrace();
             exit(1);
         }
@@ -63,7 +63,7 @@ public class MainControl implements Initializable {
         }
     }
 
-    private void loadDataFromJSON() throws IOException {
+    private void loadDataFromJSON() throws IllegalArgumentException, IOException {
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader("parameters.json"))
         {
@@ -72,17 +72,21 @@ public class MainControl implements Initializable {
 
             JSONObject data = (JSONObject) obj;
             System.out.println("Loading the starting parameters: "+data);
-            mapWidth = (int)(long) data.get("width");
-            mapHeight = (int)(long) data.get("height");
-            jungleRatio = (float)(double) data.get("jungleRatio");
-            startAnimalCount = (int)(long) data.get("startAnimalCount");
-            startPlantCount = (int)(long) data.get("startPlantCount");
-            startEnergy = (int)(long) data.get("startEnergy");
-            moveEnergy = (int)(long) data.get("moveEnergy");
-            plantEnergy = (int)(long) data.get("plantEnergy");
-
+            try {
+                mapWidth = (int) (long) data.get("width");
+                mapHeight = (int) (long) data.get("height");
+                jungleRatio = (float) (double) data.get("jungleRatio");
+                startAnimalCount = (int) (long) data.get("startAnimalCount");
+                startPlantCount = (int) (long) data.get("startPlantCount");
+                startEnergy = (int) (long) data.get("startEnergy");
+                moveEnergy = (int) (long) data.get("moveEnergy");
+                plantEnergy = (int) (long) data.get("plantEnergy");
+            }
+            catch(ClassCastException e){
+                throw new IllegalArgumentException("Error while reading starting data from the json file - parameter has invalid data type.", e);
+        }
         } catch (ParseException | IOException e) {
-            throw new IOException("Error while handling the json file.");
+            throw new IOException("Error while handling the json file.", e);
         }
     }
 }
