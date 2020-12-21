@@ -21,20 +21,20 @@ public class SimulationManager implements IClock{
     }
     public void setUpMap(int startAnimalCount, int startPlantCount){
         for(int i = 0; i < startAnimalCount; i++){
-            map.placeAnimalAtRandom(startEnergy);
+            map.placeAnimalAtRandom(startEnergy);   //all the tiles are empty
         }
         for(int i = 0; i < startPlantCount; i++){
-            map.spawnTwoPlants();
+            map.spawnTwoPlants();                   //plants can only be spawned on an empty tile
         }
     }
     public void simulateGen(){
-        map.spawnTwoPlants();
         map.killOrMoveAnimals(moveEnergy);
         map.feedAnimals(plantEnergy);
         map.breedAnimals(startEnergy);
         currentGen++;
         statManager.updateCurrGenData();
         checkAlarmSchedule();
+        map.spawnTwoPlants();
     }
 
     public void startDataSave(){

@@ -99,7 +99,7 @@ public class Animal extends AbstractDrawable implements ISubject{
     }
 
     public String toShortString(){
-        return String.format("Animal [energy=%d, dir=%s]", energy, currDirection);
+        return String.format("Animal [energy=%d, genome=%s dir=%s]", energy, genome, currDirection);
     }
 
     /**

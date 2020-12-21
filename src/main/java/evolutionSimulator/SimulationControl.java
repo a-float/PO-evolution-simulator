@@ -109,10 +109,7 @@ public class SimulationControl extends VBox implements Initializable{
 
             animalTrackControl.selectedAnimalsListView.getItems().clear();
             AnimalCollectionList selectedAnimalCollection = simManager.getMap().animalMap.get(selectedPos);
-//            if (selectedAnimalCollection.size() == 0) {
-//                selectedAnimalsListView.getItems().add("There are no animals on this tile.");
-//            }
-            for (Animal animal : selectedAnimalCollection.animalList) {   //TODO change .animalList to a getAll() or smth?
+            for (Animal animal : selectedAnimalCollection.getAnimals()) {
                 animalTrackControl.selectedAnimalsListView.getItems().add(animal);
             }
             showMap();

@@ -78,4 +78,8 @@ public class AnimalCollectionList {
     public int size(){
         return animalList.size();
     }
+
+    public List<Animal> getAnimals() {
+        return animalList;
+    }
 }

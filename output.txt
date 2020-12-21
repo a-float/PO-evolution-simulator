@@ -1,0 +1,12 @@
+Data from gen no 2086 to gen no 2586
+Data has been collected for 500 generations.
+Average animal count per generation:          24,59
+Average plant count per generation:           107,95
+Average animal energy per generation:         108,58
+Average dead animal lifespan per generation:  61,57
+Average babies per animal per generation:     2,31
+Average alive animal age per generation:      179,54
+The most dominant genomes were:
+             Genome [0:4 1:2 2:6 3:8 4:8 5:2 6:1 7:1] with 9607 occurrences.
+
+

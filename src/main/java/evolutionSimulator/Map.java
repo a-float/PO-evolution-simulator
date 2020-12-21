@@ -171,7 +171,7 @@ public class Map{
     }
 
     /**
-     * return a position of the tile in/outisde the Jungle, not occupied by an animal nor another plant.
+     * return a position of the tile in/outside the Jungle, not occupied by an animal nor another plant.
      * @param inJungle  should the returned tile be in the jungle
      * @return  tile to spawn an plant on
      */

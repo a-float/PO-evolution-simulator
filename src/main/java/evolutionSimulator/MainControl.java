@@ -40,9 +40,6 @@ public class MainControl implements Initializable {
             if(mapWidth*mapHeight < startAnimalCount){
                 throw new IllegalArgumentException("Invalid data in parameters.json. Too many animals.");
             }
-            if(mapWidth*mapHeight < startPlantCount){
-                throw new IllegalArgumentException("Invalid data in parameters.json. Too many plants.");
-            }
         }
         catch(IOException e){
             e.printStackTrace();
