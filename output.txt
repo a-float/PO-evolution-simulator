@@ -22,3 +22,27 @@ The most dominant genomes were:
              Genome [0:4 1:2 2:4 3:6 4:2 5:7 6:4 7:3] with 2972 occurrences.
 
 
+Data from gen no 29708 to gen no 39708
+Data has been collected for 10000 generations.
+Average animal count per generation:          19,88
+Average plant count per generation:           185,42
+Average animal energy per generation:         301,28
+Average dead animal lifespan per generation:  70,90
+Average babies per animal per generation:     2,52
+Average alive animal age per generation:      246,82
+The most dominant genomes were:
+             Genome [0:4 1:5 2:2 3:4 4:5 5:6 6:5 7:1] with 198849 occurrences.
+
+
+Data from gen no 100957 to gen no 110957
+Data has been collected for 10000 generations.
+Average animal count per generation:          17,91
+Average plant count per generation:           210,58
+Average animal energy per generation:         546,36
+Average dead animal lifespan per generation:  67,60
+Average babies per animal per generation:     2,75
+Average alive animal age per generation:      313,09
+The most dominant genomes were:
+             Genome [0:4 1:5 2:2 3:4 4:5 5:6 6:5 7:1] with 1538865 occurrences.
+
+

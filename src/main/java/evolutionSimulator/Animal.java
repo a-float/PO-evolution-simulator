@@ -43,7 +43,7 @@ public class Animal extends AbstractDrawable implements ISubject{
         Vector2[] possiblePositions = mama.position.getAdjacentPositions();
         shuffleVectorArray(possiblePositions);
         for (Vector2 pos : possiblePositions){
-            if (!mama.map.hasAnimal.contains(pos)) {
+            if (!mama.map.hasAnimal.contains(pos)) {    //if possible don't spawn on an occupied tile
                 babyPosition = pos;
             }
         }
@@ -95,7 +95,7 @@ public class Animal extends AbstractDrawable implements ISubject{
     }
 
     public String toString(){
-        return String.format("Animal (pos = (%d, %d) energy = %d, dir = %s)", position.x, position.y, energy, currDirection);
+        return String.format("Animal (pos = %s energy = %d, dir = %s)", position, energy, currDirection);
     }
 
     public String toShortString(){

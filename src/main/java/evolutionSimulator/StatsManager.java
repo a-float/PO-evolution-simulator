@@ -165,7 +165,7 @@ public class StatsManager implements IObserver{
         for(DataPair<Genome, Integer> dp : getDominantGenomesData(allGenomes)){
             data.append(String.format("Genome %10s with %d occurrences.\n", dp.getFirst(), dp.getSecond()));
         }
-        data.append("\n\n");
+        data.append("\n");
         String pathname = "output.txt";
         createFile(pathname);
         writeUsingFileWriter(data.toString(), pathname);

@@ -199,10 +199,10 @@ public class Map{
      * @return  True if this tile belongs to the jungle, false otherwise.
      */
     public boolean isInJungle(Vector2 vec){
-        if(vec.x < jungleStartPos.x)return false;
-        if(vec.x >= jungleEndPos.x)return false;
-        if(vec.y < jungleStartPos.y)return false;
-        if(vec.y >= jungleEndPos.y)return false;
+        if(vec.getX() < jungleStartPos.getX())return false;
+        if(vec.getX() >= jungleEndPos.getX())return false;
+        if(vec.getY() < jungleStartPos.getY())return false;
+        if(vec.getY() >= jungleEndPos.getY())return false;
         return true;
     }
 
@@ -225,7 +225,7 @@ public class Map{
      * @return  Vector2 where 0<=x<mapWidth and 0<=y<mapHeight
      */
     private Vector2 parseAnimalPosition(Vector2 pos){
-        return new Vector2(Math.floorMod(pos.x, mapWidth) ,Math.floorMod(pos.y, mapHeight));
+        return new Vector2(Math.floorMod(pos.getX(), mapWidth) ,Math.floorMod(pos.getY(), mapHeight));
     }
 
     /**

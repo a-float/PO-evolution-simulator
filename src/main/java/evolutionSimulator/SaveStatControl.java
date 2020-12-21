@@ -38,12 +38,12 @@ public class SaveStatControl extends Pane implements Initializable, ISleeper {
             //logging labels could be a separate component but javafx sceneBuilder in IntelliJ does not show the
             //views which include other views and its a component too small to be worth fixing it.
             saveStatLogLabel.setTextFill(Color.RED);
-            saveStatLogLabel.setText("Invalid argument. Input a number.");
+            saveStatLogLabel.setText("Invalid argument. Input a positive integer.");
             return;
         }
         if(timeToCollect <= 0){
             saveStatLogLabel.setTextFill(Color.RED);
-            saveStatLogLabel.setText("Invalid argument. Input a positive integer.");
+            saveStatLogLabel.setText("Negative argument. Input a positive integer.");
             return;
         }
         saveStatLogLabel.setTextFill(Color.BLACK);

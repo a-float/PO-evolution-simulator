@@ -40,13 +40,13 @@ class AnimalTest {
 
     @Test
     void testToString() {
-        assertEquals("Animal (pos = (0, 0) energy = 30, dir = NORTHWEST)", anim1.toString());
-        assertEquals("Animal (pos = (0, 0) energy = 0, dir = EAST)", anim2.toString());
+        assertEquals("Animal (pos = "+anim1.position+" energy = 30, dir = NORTHWEST)", anim1.toString());
+        assertEquals("Animal (pos = "+anim2.position+" energy = 0, dir = EAST)", anim2.toString());
     }
 
     @Test
     void toShortString() {
-        assertEquals("Animal [energy=30, dir=NORTHWEST]", anim1.toShortString());
-        assertEquals("Animal [energy=0, dir=EAST]", anim2.toShortString());
+        assertEquals("Animal [energy=30, genome="+anim1.genome+" dir=NORTHWEST]", anim1.toShortString());
+        assertEquals("Animal [energy=0, genome=" +anim2.genome+" dir=EAST]", anim2.toShortString());
     }
 }

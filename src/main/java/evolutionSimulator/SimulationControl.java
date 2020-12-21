@@ -179,33 +179,33 @@ public class SimulationControl extends VBox implements Initializable{
 
         gc.clearRect(0, 0, bounds.getWidth(), bounds.getHeight());
         Vector2 jungleSize = Vector2.subtract(map.jungleEndPos, map.jungleStartPos);
-        double jungleWidth  = jungleSize.x*cellSize;
-        double jungleHeight = jungleSize.y*cellSize;
+        double jungleWidth  = jungleSize.getX()*cellSize;
+        double jungleHeight = jungleSize.getY()*cellSize;
         //draw background
         gc.setFill(GRASS_COLOR);
         gc.fillRect(0, 0, map.mapWidth*cellSize, map.mapHeight*cellSize);
         //draw jungle
         gc.setFill(JUNGLE_COLOR);
-        gc.fillRect(map.jungleStartPos.x*cellSize, map.jungleStartPos.y*cellSize, jungleWidth, jungleHeight);
+        gc.fillRect(map.jungleStartPos.getX()*cellSize, map.jungleStartPos.getY()*cellSize, jungleWidth, jungleHeight);
         //draw plants
         map.plants.values().forEach(plant -> {
             gc.setFill(plant.getColor());
-            gc.fillRect(plant.position.x*cellSize, plant.position.y* cellSize, cellSize, cellSize);
+            gc.fillRect(plant.position.getX()*cellSize, plant.position.getY()* cellSize, cellSize, cellSize);
         });
         //draw animals
         map.animals.forEach(animal -> {
             gc.setFill(animal.getColor());
-            gc.fillRect(animal.position.x*cellSize, animal.position.y*cellSize, cellSize, cellSize);
+            gc.fillRect(animal.position.getX()*cellSize, animal.position.getY()*cellSize, cellSize, cellSize);
         });
         //draw selected square
         if(selectedPos!=null) {
             gc.setStroke(SINGLE_SELECT_COLOR);
-            gc.strokeRect(selectedPos.x * cellSize, selectedPos.y * cellSize, cellSize, cellSize);
+            gc.strokeRect(selectedPos.getX() * cellSize, selectedPos.getY() * cellSize, cellSize, cellSize);
         }
         //draw animals tracked by their dominant genome
         genomeTrackControl.getAnimalsWithDominantGenome().forEach(animal -> {
             gc.setFill(SELECT_ANIMALS_BY_GENOME_COLOR);
-            gc.fillRect(animal.position.x * cellSize, animal.position.y * cellSize, cellSize, cellSize);
+            gc.fillRect(animal.position.getX() * cellSize, animal.position.getY() * cellSize, cellSize, cellSize);
         });
     }
 

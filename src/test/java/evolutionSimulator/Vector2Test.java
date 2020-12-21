@@ -61,9 +61,11 @@ class Vector2Test {
                     new Vector2(-1, 1),  new Vector2(0, 1),   new Vector2(1, 1)
         };
         HashSet<Vector2> adjacantSet = new HashSet<>(Arrays.asList(adjacent));
+        System.out.println("Expected adjacent:");
         for(int i = 0; i < 8; i++) System.out.print(adjacent[i]);
         System.out.println();
         Vector2[] zeroAdjacent = Vector2.zero().getAdjacentPositions();
+        System.out.println("Actual adjacent:");
         for(int i = 0; i < 8; i++) System.out.print(zeroAdjacent[i]);
         System.out.println();
         for(int i = 0; i < 8; i++){
@@ -87,9 +89,9 @@ class Vector2Test {
 
     @Test
     void testToString() {
-        assertEquals("(2, 3)", new Vector2(2,3).toString());
-        assertEquals("(0, 0)", new Vector2(0,0).toString());
-        assertEquals("(-1, 0)", new Vector2(-1,0).toString());
-        assertEquals("(1000, 5)", new Vector2(1000,5).toString());
+        assertEquals("(2,3)", new Vector2(2,3).toString());
+        assertEquals("(0,0)", new Vector2(0,0).toString());
+        assertEquals("(-1,0)", new Vector2(-1,0).toString());
+        assertEquals("(1000,5)", new Vector2(1000,5).toString());
     }
 }
