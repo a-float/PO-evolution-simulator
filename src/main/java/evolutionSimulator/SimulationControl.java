@@ -172,7 +172,7 @@ public class SimulationControl extends VBox implements Initializable{
     }
 
     public void showMap() { //TODO hardcoded colors
-        GraphicsContext gc = canvas.getGraphicsContext2D(); //TODO setting cellSize and these variables is similar
+        GraphicsContext gc = canvas.getGraphicsContext2D();
         Bounds bounds = canvas.getBoundsInLocal();
         Map map = simManager.getMap();
         double cellSize = Math.min(bounds.getWidth()/map.mapWidth, bounds.getHeight()/map.mapHeight);
