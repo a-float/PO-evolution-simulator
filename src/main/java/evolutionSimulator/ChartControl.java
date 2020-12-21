@@ -16,7 +16,7 @@ import java.util.ResourceBundle;
 public class ChartControl extends Pane implements Initializable {
 
     @FXML
-    AreaChart areaChart;
+    private AreaChart<Integer, Integer> areaChart;
     @FXML
     private NumberAxis xAxis;
 
@@ -25,7 +25,7 @@ public class ChartControl extends Pane implements Initializable {
     private final XYChart.Series<Integer, Integer> plantSeries = new XYChart.Series<>();
 
     public ChartControl(){
-        System.out.println("ChartControl constructed.");
+//        System.out.println("ChartControl constructed.");
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/chart.fxml"));
         loader.setRoot(this);
         loader.setController(this);

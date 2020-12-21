@@ -102,7 +102,7 @@ public class SimulationControl extends VBox implements Initializable{
         if(!isPlaying) {
             Map map = simManager.getMap();
             Bounds bounds = canvas.getBoundsInLocal();
-            double cellSize = Math.min(bounds.getWidth() / map.mapWidth, bounds.getHeight() / map.mapHeight);
+            double cellSize = Math.min(bounds.getWidth() / map.getWidth(), bounds.getHeight() / map.getHeight());
             int x = (int) Math.floor(event.getX() / cellSize);
             int y = (int) Math.floor(event.getY() / cellSize);
             selectedPos = new Vector2(x, y);
@@ -175,7 +175,7 @@ public class SimulationControl extends VBox implements Initializable{
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Bounds bounds = canvas.getBoundsInLocal();
         Map map = simManager.getMap();
-        double cellSize = Math.min(bounds.getWidth()/map.mapWidth, bounds.getHeight()/map.mapHeight);
+        double cellSize = Math.min(bounds.getWidth()/map.getWidth(), bounds.getHeight()/map.getHeight());
 
         gc.clearRect(0, 0, bounds.getWidth(), bounds.getHeight());
         Vector2 jungleSize = Vector2.subtract(map.jungleEndPos, map.jungleStartPos);
@@ -183,7 +183,7 @@ public class SimulationControl extends VBox implements Initializable{
         double jungleHeight = jungleSize.getY()*cellSize;
         //draw background
         gc.setFill(GRASS_COLOR);
-        gc.fillRect(0, 0, map.mapWidth*cellSize, map.mapHeight*cellSize);
+        gc.fillRect(0, 0, map.getWidth()*cellSize, map.getHeight()*cellSize);
         //draw jungle
         gc.setFill(JUNGLE_COLOR);
         gc.fillRect(map.jungleStartPos.getX()*cellSize, map.jungleStartPos.getY()*cellSize, jungleWidth, jungleHeight);
@@ -211,7 +211,7 @@ public class SimulationControl extends VBox implements Initializable{
 
     public double getCellSize(int size){
         Map map = simManager.getMap();
-        return Math.min(size/map.mapWidth, size/map.mapHeight);
+        return Math.min(size/map.getWidth(), size/map.getHeight());
     }
 
     public void setSize(int width, int height) {

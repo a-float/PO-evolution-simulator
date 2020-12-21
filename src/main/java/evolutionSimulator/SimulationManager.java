@@ -67,7 +67,7 @@ public class SimulationManager implements IClock{
             DataPair<ISleeper, Integer> dp = iter.next();
             if(dp.getSecond() == currentGen){
                 dp.getFirst().wakeUp();
-                System.out.println("Woke up "+dp.getFirst()+" at "+dp.getSecond());
+                System.out.println("Woke up "+dp.getFirst()+" at gen no"+dp.getSecond());
                 iter.remove();
             }
         }

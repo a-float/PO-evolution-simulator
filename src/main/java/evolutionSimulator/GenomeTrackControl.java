@@ -104,13 +104,13 @@ public class GenomeTrackControl extends Pane implements Initializable, IObserver
      * waits for animal death notifications from the animals who have the currentlyTrackedGenome
      * if the last bearer of the tracked genome has dies, stop tracking
      * @param event expected to be AnimalEvent.DEATH
-     * @param parent the animal that dies
+     * @param subject the animal that dies
      * @param newborn not used
      */
     @Override
-    public void notify(AnimalEvent event, Animal parent, Animal newborn) {
+    public void notify(AnimalEvent event, Animal subject, Animal newborn) {
         if(event == AnimalEvent.DEATH){
-            selectedGenomeAnimals.remove(parent);
+            selectedGenomeAnimals.remove(subject);
             if(selectedGenomeAnimals.size() == 0)currentlyTrackerGenome = null;
         }
     }

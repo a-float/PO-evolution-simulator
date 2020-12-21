@@ -97,7 +97,7 @@ public class StatsManager implements IObserver{
         float babySum = 0;
         float ageSum = 0;
         int animalCount = map.animals.size();
-        int plantCount = map.mapHeight*map.mapWidth- map.noHasPlant.size();
+        int plantCount = map.plants.size();
         for(Animal animal : map.animals) {
             babySum += animal.babyCount;
             ageSum += animal.age;

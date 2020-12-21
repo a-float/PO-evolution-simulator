@@ -143,14 +143,14 @@ public class AnimalTrackControl extends Pane implements Initializable, IObserver
      * is triggered by both parent animals when they have a child
      * used to count the number or trackedAnimal descendants
      * @param event describes what has happened
-     * @param parent animal that has been observed (parent or deceased)
+     * @param subject animal that has been observed (parent or deceased)
      * @param newborn its child - will be observed as well
      */
     @Override
-    public void notify(AnimalEvent event, Animal parent, Animal newborn) {
+    public void notify(AnimalEvent event, Animal subject, Animal newborn) {
         //there should be notifications while the AnimalTrackControl is not tracking.
         //AnimalTrackControl is removed as an observed from all subjects in StopTracking method
-        if(event == AnimalEvent.DEATH && parent == trackedAnimal){
+        if(event == AnimalEvent.DEATH && subject == trackedAnimal){
             trackingData.get(trackingDataKeys.DEATH).setSecond(Integer.toString(simManager.getCurrentGen()));
             dataHasChanged = true;
         }
@@ -159,7 +159,7 @@ public class AnimalTrackControl extends Pane implements Initializable, IObserver
                 throw new IllegalArgumentException("There can't be a NEW_CHILD event with null newborn");
             }
             if(!newborn.isObservedBy(this)) {   //it hasn't been counted yet
-                if (parent == trackedAnimal) {   //its a new direct child
+                if (subject == trackedAnimal) {   //its a new direct child
                     incrementValue(trackingData.get(trackingDataKeys.CHILDREN));
                 }
                 //every child is also a descendant

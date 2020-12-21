@@ -4,17 +4,16 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 public class Map{
-    int mapWidth;
-    int mapHeight;
+    private final int width;
+    private final int height;
     HashMap<Vector2, AnimalCollectionList> animalMap = new HashMap<>();
     HashMap<Vector2, Plant> plants = new HashMap<>();   //needed for drawing plants
     List<Animal> animals = new ArrayList<>();
     Set<Vector2> noHasPlant = new HashSet<>(); //used to avoid plant collisions
     Set<Vector2> hasAnimal = new HashSet<>(); //used to keep track of where the animals are
-    Vector2 jungleStartPos;
-    Vector2 jungleEndPos;
+    Vector2 jungleStartPos; //included in the jungle
+    Vector2 jungleEndPos;   //not included in the jungle
     SimulationManager simManger;
 
     public void setSimManager(SimulationManager simManager){
@@ -22,18 +21,18 @@ public class Map{
     }
 
     public Map(int width, int height, float jungleRatio){
-        mapWidth = width;
-        mapHeight = height;
-        int xJungleStart = (int)Math.round(mapWidth*(1-jungleRatio)*0.5);
-        int xJungleEnd   = (int)Math.round(mapWidth*(1-(1-jungleRatio)*0.5));
-        int yJungleStart = (int)Math.round(mapHeight*(1-jungleRatio)*0.5);
-        int yJungleEnd   = (int)Math.round(mapHeight*(1-(1-jungleRatio)*0.5));
+        this.width = width;
+        this.height = height;
+        int xJungleStart = (int)Math.round(this.width *(1-jungleRatio)*0.5);
+        int xJungleEnd   = (int)Math.round(this.width *(1-(1-jungleRatio)*0.5));
+        int yJungleStart = (int)Math.round(this.height *(1-jungleRatio)*0.5);
+        int yJungleEnd   = (int)Math.round(this.height *(1-(1-jungleRatio)*0.5));
         jungleStartPos = new Vector2(xJungleStart, yJungleStart);
         jungleEndPos = new Vector2(xJungleEnd, yJungleEnd);
         //the board is empty so no tiles have a plant on them
-        for(int x = 0; x < mapWidth; x++){
-            for(int y = 0; y < mapHeight; y++){
-                //there are no plants so all tiles don't have plants on them
+        for(int x = 0; x < this.width; x++){
+            for(int y = 0; y < this.height; y++){
+                //there are no plants -> all animals spawn on tiles with no plants
                 noHasPlant.add(new Vector2(x,y));
                 //fills animalsMap with empty AnimalsCollections
                 animalMap.put(new Vector2(x,y), new AnimalCollectionList(3));
@@ -150,7 +149,7 @@ public class Map{
                 .filter(vec -> !hasAnimal.contains(vec)) //is not in hasAnimals
                 .collect(Collectors.toSet());
         //picking a random position from the set of available ones
-        Animal animalToAdd = new Animal(getRandomVecFromSet(noAnimalSet), new Genome(32), startEnergy);
+        Animal animalToAdd = new Animal(getRandomVectorFromSet(noAnimalSet), new Genome(32), startEnergy);
         placeNewAnimal(animalToAdd);
     }
 
@@ -191,7 +190,7 @@ public class Map{
                     .collect(Collectors.toSet());
         }
         if(diffSet.size() == 0)return null; //no place for a plant
-        return getRandomVecFromSet(diffSet);
+        return getRandomVectorFromSet(diffSet);
     }
 
     /**
@@ -211,7 +210,7 @@ public class Map{
      * @param set set of Vector2
      * @return  returns a random element from the set
      */
-    private Vector2 getRandomVecFromSet(Set<Vector2> set){
+    private Vector2 getRandomVectorFromSet(Set<Vector2> set){
         int index = new Random().nextInt(set.size());
         Iterator<Vector2> iter = set.iterator();
         for (int i = 0; i < index; i++) {
@@ -225,7 +224,7 @@ public class Map{
      * @return  Vector2 where 0<=x<mapWidth and 0<=y<mapHeight
      */
     private Vector2 parseAnimalPosition(Vector2 pos){
-        return new Vector2(Math.floorMod(pos.getX(), mapWidth) ,Math.floorMod(pos.getY(), mapHeight));
+        return new Vector2(Math.floorMod(pos.getX(), width) ,Math.floorMod(pos.getY(), height));
     }
 
     /**
@@ -234,14 +233,22 @@ public class Map{
      * @return  List of found animals positions. Can contain duplicates.
      */
     public List<Animal> getAnimalsByGenome(Genome genome) {
-        //no random access needed,should only be looped over. LinkedList is ok
-        //Set would prevent duplicates in the result, but its not needed for showing them on the map
-        List<Animal> foundPositions = new LinkedList<>();
+        //no random access needed, just adding and looping over. LinkedList should be better.
+        //Set would prevent duplicates in the result, but its not necessary for showing them on the map
+        List<Animal> foundAnimals = new LinkedList<>();
         for(Animal animal: animals){
             if(animal.genome.equals(genome)){
-                foundPositions.add(animal);
+                foundAnimals.add(animal);
             }
         }
-        return foundPositions;
+        return foundAnimals;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }
